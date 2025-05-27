@@ -43,9 +43,7 @@ export default function StaffDetails() {
   return (
     <div className=" p-4 md:py-8  md:px-4 bg-slate-100 ">
       {/* Header or Page Title */}
-      <h1 className="text-2xl font-bold mb-4 rounded-lg bg-white p-4">
-        Staff (Details) : Rohan
-      </h1>
+      <h1 className="text-2xl font-bold mb-4 rounded-lg bg-white p-4">Staff (Details) : Rohan</h1>
 
       <div className="flex flex-col md:flex-row gap-4 mb-7">
         <div className="w-full md:w-1/4">
@@ -55,7 +53,6 @@ export default function StaffDetails() {
                 src="/swasthfit-gym/images/profile.jpg"
                 alt="Staff Profile"
                 className="w-24 h-24 rounded-full mb-4 border-2 border-gray-300 object-cover"
-                loading="lazy"
               />
               <h3 className="text-lg font-semibold">Rohan</h3>
             </div>
@@ -101,7 +98,8 @@ export default function StaffDetails() {
                 ].map((btn, index) => (
                   <button
                     key={index}
-                    className={`${btn.color} text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto`}>
+                    className={`${btn.color} text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto`}
+                  >
                     {btn.label}
                   </button>
                 ))}
@@ -160,7 +158,8 @@ export default function StaffDetails() {
             {data.map((item, index) => (
               <tr
                 key={index}
-                className="bg-white shadow-sm hover:bg-gray-50 transition-all duration-200 border-b rounded-lg overflow-hidden">
+                className="bg-white shadow-sm hover:bg-gray-50 transition-all duration-200 border-b rounded-lg overflow-hidden"
+              >
                 <td className="p-4 text-center rounded-l-lg">
                   <input
                     type="checkbox"
@@ -188,7 +187,8 @@ export default function StaffDetails() {
                           <button
                             className={`w-full px-4 py-2 text-left text-green-600 text-sm rounded-md transition ${
                               active ? "bg-gray-200" : ""
-                            }`}>
+                            }`}
+                          >
                             Active
                           </button>
                         )}
@@ -198,7 +198,8 @@ export default function StaffDetails() {
                           <button
                             className={`w-full px-4 py-2 text-left text-sm text-red-600 rounded-md transition ${
                               active ? "bg-gray-200" : ""
-                            }`}>
+                            }`}
+                          >
                             Inactive
                           </button>
                         )}
@@ -211,6 +212,79 @@ export default function StaffDetails() {
           </tbody>
         </table>
       </div>
+
+      {/* <div className="overflow-x-auto p-4">
+        <table className="min-w-full">
+          <thead className="flex rounded-lg">
+            <tr className="bg-gray-800 text-white roundded-lg">
+              <th className="p-3 text-left">
+                <input type="checkbox" className="w-4 h-4 text-indigo-600" />
+              </th>
+              <th className="p-3 text-left">Checked In At</th>
+              <th className="p-3 text-left">Checked Out At</th>
+              <th className="p-3 text-left">Fitness Center</th>
+              <th className="p-3 text-left">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.map((item, index) => (
+              <tr
+                key={index}
+                className="bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 border-b"
+              >
+                <td className="p-4 text-center">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 border-gray-300 rounded-md cursor-pointer checked:bg-purple-500 focus:ring-2 focus:ring-purple-500"
+                  />
+                </td>
+                <td className="p-4 text-center rounded-lg">{item.checkedIn}</td>
+                <td className="p-4 text-center rounded-lg">
+                  {item.checkedOut}
+                </td>
+                <td className="p-4 text-center rounded-lg">{item.center}</td>
+
+                <td className="p-4 flex justify-center items-center gap-3">
+                  <button className="bg-green-100 p-2 rounded-full hover:bg-green-200 transition">
+                    <PencilIcon className="h-5 w-5 text-green-500" />
+                  </button>
+                  <Menu as="div" className="relative">
+                    <MenuButton className="border border-blue-500 px-3 py-1.5 rounded-lg flex items-center text-blue-500 hover:bg-blue-100 transition">
+                      Action <ChevronDownIcon className="h-4 w-4 ml-1" />
+                    </MenuButton>
+
+                    <MenuItems className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg">
+                      <MenuItem>
+                        {({ active }) => (
+                          <button
+                            className={`w-full px-4 py-2 text-left text-green-600 text-sm rounded-md transition ${
+                              active ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            Active
+                          </button>
+                        )}
+                      </MenuItem>
+                      <MenuItem>
+                        {({ active }) => (
+                          <button
+                            className={`w-full px-4 py-2 text-left text-sm text-red-600 rounded-md transition ${
+                              active ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            Inactive
+                          </button>
+                        )}
+                      </MenuItem>
+                    </MenuItems>
+                  </Menu>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div> */}
     </div>
   );
 }
