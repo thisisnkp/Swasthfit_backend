@@ -27,7 +27,27 @@ const User = sequelize.define(
       allowNull: true,
       validate: { isEmail: true },
     },
-    user_bank: { type: DataTypes.TEXT, allowNull: true },
+    user_bank: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      get() {
+        const rawValue = this.getDataValue('user_bank');
+        if (!rawValue) return null;
+        // Handle both string and JSON cases
+        try {
+          return JSON.parse(rawValue);
+        } catch (e) {
+          return rawValue; // Return as-is if it's not JSON
+        }
+      },
+      set(value) {
+        if (typeof value === 'object') {
+          this.setDataValue('user_bank', JSON.stringify(value));
+        } else {
+          this.setDataValue('user_bank', value);
+        }
+      }
+    },
     user_height: { type: DataTypes.INTEGER, allowNull: true },
     user_weight: { type: DataTypes.INTEGER, allowNull: true },
     user_aadhar: {
@@ -121,9 +141,14 @@ User.addHook("afterFind", (result, options) => {
         fieldsToDeserialize.forEach((field) => {
           if (instance[field] && typeof instance[field] === "string") {
             try {
-              instance[field] = JSON.parse(instance[field]);
+              // Only try to parse if it looks like JSON
+              if (instance[field].startsWith('{') || instance[field].startsWith('[')) {
+                instance[field] = JSON.parse(instance[field]);
+              }
+              // Otherwise keep the string value as-is
             } catch (err) {
-              console.error(`Error deserializing field "${field}":`, err);
+              // Keep the original string value if parsing fails
+              console.log(`Field "${field}" contains non-JSON string value:`, instance[field]);
             }
           }
         });
@@ -132,9 +157,14 @@ User.addHook("afterFind", (result, options) => {
       fieldsToDeserialize.forEach((field) => {
         if (result[field] && typeof result[field] === "string") {
           try {
-            result[field] = JSON.parse(result[field]);
+            // Only try to parse if it looks like JSON
+            if (result[field].startsWith('{') || result[field].startsWith('[')) {
+              result[field] = JSON.parse(result[field]);
+            }
+            // Otherwise keep the string value as-is
           } catch (err) {
-            console.error(`Error deserializing field "${field}":`, err);
+            // Keep the original string value if parsing fails
+            console.log(`Field "${field}" contains non-JSON string value:`, result[field]);
           }
         }
       });

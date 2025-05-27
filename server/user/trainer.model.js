@@ -2,7 +2,6 @@ const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../sequelize");
 const User = require("./user.model");
 
-// Define the UserFitData model
 const Trainer = sequelize.define(
   "trainers",
   {
@@ -10,21 +9,54 @@ const Trainer = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "users", // Ensure this matches the table name in the database
+        model: "users",
         key: "id",
       },
-      onDelete: "CASCADE", // Ensure referential integrity
-      onUpdate: "CASCADE", // Ensure referential integrity
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     firstname: DataTypes.STRING,
     lastname: DataTypes.STRING,
-    profile_photo: DataTypes.STRING,
-    transformation_photos: DataTypes.STRING,
+    profile_photo: {
+      type: DataTypes.STRING(1000),
+      allowNull: true,
+      comment: "Path to profile photo uploaded via multer",
+    },
+    transformation_photos: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      get() {
+        const rawValue = this.getDataValue("transformation_photos");
+        try {
+          return rawValue ? JSON.parse(rawValue) : [];
+        } catch (error) {
+          console.error("Error parsing transformation_photos:", error);
+          return []; // Return an empty array if parsing fails
+        }
+      },
+      set(value) {
+        this.setDataValue("transformation_photos", JSON.stringify(value));
+      },
+      comment: "Array of paths to transformation photos uploaded via multer",
+    },
     address: DataTypes.TEXT,
     expertise: DataTypes.TEXT,
     experience: DataTypes.STRING,
     bank_account_no: DataTypes.STRING,
     ifsc_code: DataTypes.STRING,
+    days: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      get() {
+        const rawValue = this.getDataValue("days");
+        return rawValue ? JSON.parse(rawValue) : [];
+      },
+      set(value) {
+        this.setDataValue("days", JSON.stringify(value));
+      },
+      comment: "Days trainer is available, e.g., monday,tuesday,friday",
+    },
+
     time_slot: DataTypes.TEXT("long"),
     client_details: DataTypes.STRING,
     client_bio: DataTypes.STRING,
@@ -49,9 +81,9 @@ const Trainer = sequelize.define(
     sequelize,
     modelName: "trainer",
     tableName: "trainers",
-    timestamps: true, // Enables createdAt and updatedAt fields
-    createdAt: "created_at", // Custom column name for createdAt
-    updatedAt: "updated_at", // Custom column name for updatedAt
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 

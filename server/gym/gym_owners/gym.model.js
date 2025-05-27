@@ -21,7 +21,7 @@ const Gym = sequelize.define(
       },
     },
     business_type: {
-      type: DataTypes.ENUM("Direct", "By Swasthfit"),
+      type: DataTypes.ENUM("direct", "franchise"),
       allowNull: false,
       defaultValue: "direct",
     },
@@ -38,8 +38,24 @@ const Gym = sequelize.define(
       allowNull: true,
     },
     gym_geo_location: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+      type: DataTypes.JSON,
+      allowNull: false, // Making it required
+      validate: {
+        notNull: {
+          msg: 'Gym location is required'
+        },
+        isValidLocation(value) {
+          if (!value.latitude || !value.longitude) {
+            throw new Error('Both latitude and longitude are required');
+          }
+          if (value.latitude < -90 || value.latitude > 90) {
+            throw new Error('Invalid latitude');
+          }
+          if (value.longitude < -180 || value.longitude > 180) {
+            throw new Error('Invalid longitude');
+          }
+        }
+      }
     },
     facilities: {
       type: DataTypes.TEXT,
@@ -107,7 +123,7 @@ const Gym = sequelize.define(
 //   if (models.gymOwners) {
 //     Gym.belongsTo(models.gymOwners, {
 //       foreignKey: { name: "owner_id", allowNull: false },
-//       onDelete: "CASCADE", 
+//       onDelete: "CASCADE",
 //     });
 //   }
 

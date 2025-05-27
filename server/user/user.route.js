@@ -37,11 +37,13 @@ router.put("/users/:id", verifyJWT, userController.updateUser);
 router.get("/profile", verifyJWT, userController.getUserDetails);
 router.get("/getUserByEmail/:email", verifyJWT, userController.getUserByEmail);
 
-// Route to fetch trainers details by ID
+// Route to fetch a specific trainer by ID
+router.get("/trainers/:id", verifyJWT, userController.getTrainerById);
 router.get("/trainers", verifyJWT, userController.getAllTrainers);
-
 // Route to book trainer details by ID
 router.post("/book-trainer", authenticateJWT, userController.bookTrainer);
+//trainer photos
+router.get("/trainer/photos/:trainerId", userController.getTrainerPhotos);
 
 // Route to fetch all uaers fit data details by ID
 router.get("/user-fit-data", verifyJWT, userController.getAllUserFitData);

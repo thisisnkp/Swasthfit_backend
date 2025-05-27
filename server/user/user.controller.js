@@ -3,7 +3,7 @@ const config = require("../../config");
 const bcrypt = require("bcrypt");
 const User = require("./user.model"); //user model
 const UserFitData = require("./userfitdata.model"); //user fit model
-const Trainer = require("./trainer.model");
+const Trainer = require("./trainer.model"); // Ensure this is declared only once
 const { use } = require("./user.route");
 const { Op } = require("sequelize");
 
@@ -152,16 +152,16 @@ exports.userRegistration = async (req, res) => {
       where: {
         [Op.or]: [
           { user_mobile: user_mobile ? user_mobile.toString() : null },
-          { user_email: user_email ? user_email : null }
-        ]
-      }
+          { user_email: user_email ? user_email : null },
+        ],
+      },
     });
 
     // Add debug logs
-    console.log('Checking for existing user with:', {
+    console.log("Checking for existing user with:", {
       mobile: user_mobile,
       email: user_email,
-      existingUser: existingUser
+      existingUser: existingUser,
     });
 
     if (existingUser) {
@@ -170,8 +170,9 @@ exports.userRegistration = async (req, res) => {
         success: false,
         message: "User with this mobile number or email already exists.",
         debug: {
-          foundWith: existingUser.user_email === user_email ? 'email' : 'mobile'
-        }
+          foundWith:
+            existingUser.user_email === user_email ? "email" : "mobile",
+        },
       });
     }
 
@@ -186,14 +187,14 @@ exports.userRegistration = async (req, res) => {
         !bank_account_no ||
         !ifsc_code ||
         !time_slot ||
-        !req.body.trainerType || // <-- Ensure trainerType is provided
-        !password // <-- Ensure password is provided
+        !req.body.trainerType ||
+        !password ||
+        !req.body.days  // Add days validation
       ) {
         return res.status(400).json({
           status: 400,
           success: false,
-          message:
-            "Trainer fields (firstname, lastname, expertise, experience, address, bank_account_no, ifsc_code, time_slot, password) are required.",
+          message: "All trainer fields including available days are required.",
         });
       }
     } else {
@@ -227,7 +228,8 @@ exports.userRegistration = async (req, res) => {
 
     // Insert user into the User table
     const newUser = await User.create({
-      user_name: user_type === "trainer" ? `${firstname} ${lastname}` : user_name, // Combine firstname and lastname for trainers
+      user_name:
+        user_type === "trainer" ? `${firstname} ${lastname}` : user_name, // Combine firstname and lastname for trainers
       user_mobile,
       user_email,
       user_type,
@@ -237,7 +239,7 @@ exports.userRegistration = async (req, res) => {
       user_pan,
       user_bank,
       user_age,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     // Insert additional data into UserFitData for general users
@@ -260,51 +262,53 @@ exports.userRegistration = async (req, res) => {
     }
 
     // Insert trainer-specific data into Trainer table
+    // Inside the trainer creation block
     if (user_type === "trainer") {
-      // Handle profile photo upload
-      let profilePhoto = "";
-      if (req.files?.profile_photo) {
-        const upload = await fileUploaderSingle(
-          "./uploads/trainers/profile/",
-          req.files.profile_photo
-        );
-        profilePhoto = upload.newFileName;
-      }
-
-      // Handle transformation photos upload
-      let transformationPhotos = [];
-      if (req.files?.transformation_photos) {
-        const uploads = await fileUploaderMultiple(
-          "./uploads/trainers/transformations/",
-          req.files.transformation_photos
-        );
-        transformationPhotos = uploads.map((upload) => upload.newFileName);
-      }
-
-      await Trainer.create({
-        user_id: newUser.id, // Link Trainer data with the user
-        firstname,
-        lastname,
-        expertise,
-        experience,
-        address,
-        bank_account_no,
-        ifsc_code,
-        time_slot,
-        time_slot: JSON.stringify(time_slot),
-        trainerType: req.body.trainerType, // <-- Save trainerType
-        client_bio: req.body.client_bio || "",
-        client_price: req.body.client_price || "",
-        client_quote: req.body.client_quote || "",
-        diet_and_workout_details: JSON.stringify(
-          req.body.diet_and_workout_details || {}
-        ),
-        aadhar_details: user_aadhar || "",
-        pan_details: user_pan || "",
-        commission_earned: 0,
-        ratings: 0,
-        // password field removed as it is stored in User table
-      });
+    // Handle profile photo upload
+    let profilePhoto = "";
+    if (req.files?.profile_photo) {
+    const upload = await fileUploaderSingle(
+    "./uploads/trainers/profile/",
+    req.files.profile_photo
+    );
+    profilePhoto = upload.newFileName;
+    }
+    
+    // Handle transformation photos upload
+    let transformationPhotos = [];
+    if (req.files?.transformation_photos) {
+    const uploads = await fileUploaderMultiple(
+    "./uploads/trainers/transformations/",
+    req.files.transformation_photos
+    );
+    transformationPhotos = uploads.map((upload) => upload.newFileName);
+    }
+    
+    await Trainer.create({
+    user_id: newUser.id,
+    firstname,
+    lastname,
+    profile_photo: profilePhoto, // Add this line
+    transformation_photos: JSON.stringify(transformationPhotos), // Add this line
+    expertise,
+    experience,
+    address,
+    bank_account_no,
+    ifsc_code,
+    days: req.body.days, // Make sure to pass the days array
+    time_slot: JSON.stringify(time_slot),
+    trainerType: req.body.trainerType,
+    client_bio: req.body.client_bio || "",
+    client_price: req.body.client_price || "",
+    client_quote: req.body.client_quote || "",
+    diet_and_workout_details: JSON.stringify(
+    req.body.diet_and_workout_details || {}
+    ),
+    aadhar_details: user_aadhar || "",
+    pan_details: user_pan || "",
+    commission_earned: 0,
+    ratings: 0,
+    });
     }
 
     // Generate JWT token
@@ -336,14 +340,18 @@ exports.userRegistration = async (req, res) => {
 };
 
 // Get all trainers or dietitians
+// Remove the duplicate declaration of Trainer
+// const Trainer = require("./trainer.model");
+
 exports.getAllTrainers = async (req, res) => {
   try {
     const { trainerType } = req.query; // "trainer" or "dietitian"
     const where = trainerType ? { trainerType } : {};
     const trainers = await require("./trainer.model").findAll({ where });
-    res.status(200).json({ success: true, data: trainers });
+    return res.status(200).json({ success: true, data: trainers });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error." });
+    console.error("Error fetching trainers:", error);
+    return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
   }
 };
 
@@ -616,5 +624,66 @@ exports.getUserByEmail = async (req, res) => {
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+// Add this new endpoint to get trainer photos
+exports.getTrainerPhotos = async (req, res) => {
+  try {
+    const { trainerId } = req.params;
+
+    const trainer = await Trainer.findOne({
+      where: { user_id: trainerId },
+      attributes: ['profile_photo', 'transformation_photos']
+    });
+
+    if (!trainer) {
+      return res.status(404).json({
+        success: false,
+        message: "Trainer not found"
+      });
+    }
+
+    // Construct full URLs for the photos
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    
+    // Parse transformation_photos if it exists
+    const transformationPhotos = trainer.transformation_photos 
+      ? JSON.parse(trainer.transformation_photos) 
+      : [];
+
+    const response = {
+      profile_photo: trainer.profile_photo ? `${baseUrl}/uploads/trainers/profile/${trainer.profile_photo}` : null,
+      transformation_photos: transformationPhotos.map(photo => 
+        `${baseUrl}/uploads/trainers/transformations/${photo}`
+      )
+    };
+
+    res.status(200).json({
+      success: true,
+      data: response
+    });
+  } catch (error) {
+    console.error('Error fetching trainer photos:', error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
+exports.getTrainerById = async (req, res) => {
+  try {
+    const trainerId = req.params.id;
+    const trainer = await Trainer.findByPk(trainerId);
+
+    if (!trainer) {
+      return res.status(404).json({ success: false, message: "Trainer not found" });
+    }
+
+    return res.status(200).json({ success: true, data: trainer });
+  } catch (error) {
+    console.error("Error fetching trainer:", error);
+    return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
   }
 };

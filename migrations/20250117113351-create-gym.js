@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-const { Sequelize } = require('sequelize');
+const { Sequelize } = require("sequelize");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    await queryInterface.createTable('gyms', {
+    await queryInterface.createTable("gyms", {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -17,9 +17,9 @@ module.exports = {
         allowNull: false,
       },
       business_type: {
-        type: Sequelize.ENUM('direct', 'franchise'),
+        type: Sequelize.ENUM("direct", "franchise"),
         allowNull: false,
-        defaultValue: 'direct',
+        defaultValue: "direct",
       },
       gym_name: {
         type: Sequelize.STRING(50),
@@ -80,17 +80,19 @@ module.exports = {
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal(
+          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        ),
       },
     });
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('gyms');
+    await queryInterface.dropTable("gyms");
   },
 };

@@ -6,6 +6,15 @@ const express = require("express");
 //   createGym,
 //   // getGymByEmail,
 // } = require("./controllers/gym.controller");
+const { createGym } = require("./gym.controller");
+const authenticateJWT = require("../../authenticateJWT");
+const upload = require("../../multer_uploads");
+
+const {
+  createGymByOwner,
+  getGymByIdByOwner,
+  deleteGymByOwner,
+} = require("./gym_owners/gym.controller");
 
 const {
   // createGymOwner,
@@ -18,6 +27,7 @@ const {
   getGymByEmail,
   getAllGymStaff,
   getGymStaffById,
+  findNearbyGyms, // Add this import
 } = require("./gym_owners/gym.controller");
 
 const {
@@ -63,6 +73,28 @@ router.use(express.json());
 
 // Login API
 // router.post("/login", loginAccess(), gymLogin);
+
+router.post("/createGym", authenticateJWT, createGym);
+
+// Route to create a new gym
+router.post(
+  "/createGym/owner",
+  authenticateJWT,
+  upload.fields([
+    { name: "gym_logo", maxCount: 1 },
+    { name: "gym_profile_image", maxCount: 1 },
+    { name: "gst_certificate", maxCount: 1 },
+    { name: "msme_certificate", maxCount: 1 },
+    { name: "shop_certificate", maxCount: 1 },
+  ]),
+  createGymByOwner
+);
+
+// Route to get a gym by ID
+router.get("/gym/owner/:id", authenticateJWT, getGymByIdByOwner);
+
+// Route to delete a gym by ID
+router.delete("/gym/owner/:id", authenticateJWT, deleteGymByOwner);
 
 router.post("/register", Register);
 router.post("/login", gymLogin);
@@ -112,5 +144,8 @@ router.get("/about", verifyJWT, gymAboutController.getAllGyms);
 router.get("/about/:gym_id", verifyJWT, gymAboutController.getGymById);
 router.put("/:id", verifyJWT, gymAboutController.updateGymAbout);
 router.delete("/:id", verifyJWT, gymAboutController.deleteGymAbout);
+
+// Nearby Gyms API
+router.get("/nearby-gyms", findNearbyGyms);
 
 module.exports = router;
