@@ -9,22 +9,6 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("FoodFavoriteResturants", {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-        allowNull: false,
-      },
-      user_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      rest_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-    });
   },
 
   async down(queryInterface, Sequelize) {

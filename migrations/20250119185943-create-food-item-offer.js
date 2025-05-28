@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('FoodItemOffers', {
+    await queryInterface.createTable("FoodItemOffers", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -20,51 +20,53 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'FoodItems',
-          key: 'id',
+          model: "FoodItems",
+          key: "id",
         },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       min_quantity: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        comment: 'Minimum quantity required for the offer',
+        comment: "Minimum quantity required for the offer",
       },
       offer_price: {
         type: Sequelize.FLOAT,
         allowNull: false,
-        comment: 'Price for the specified quantity',
+        comment: "Price for the specified quantity",
       },
       start_date: {
         type: Sequelize.DATE,
         allowNull: true,
-        comment: 'Offer start date',
+        comment: "Offer start date",
       },
       end_date: {
         type: Sequelize.DATE,
         allowNull: true,
-        comment: 'Offer end date',
+        comment: "Offer end date",
       },
       created_by: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: 'FoodRestaurants',
-          key: 'id'
+          model: "FoodRestaurants",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal(
+          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+        ),
       },
     });
   },
@@ -76,6 +78,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('FoodItemOffers');
-  }
+    await queryInterface.dropTable("FoodItemOffers");
+  },
 };

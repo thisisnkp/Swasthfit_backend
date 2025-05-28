@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('restaurant_diet_plans', {
+    await queryInterface.createTable("restaurant_diet_plans", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -13,19 +13,19 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'client_diet_plans',
-          key: 'id',
+          model: "client_diet_plans",
+          key: "id",
         },
-        onDelete: 'CASCADE',
+        onDelete: "CASCADE",
       },
       restaurant_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'foodrestaurants',
-          key: 'id',
+          model: "foodrestaurants",
+          key: "id",
         },
-        onDelete: 'CASCADE',
+        onDelete: "CASCADE",
       },
       breakfast_price: {
         type: Sequelize.FLOAT,
@@ -46,8 +46,8 @@ module.exports = {
         type: Sequelize.FLOAT,
       },
       status: {
-        type: Sequelize.ENUM('Pending', 'Approved', 'Rejected'),
-        defaultValue: 'Pending',
+        type: Sequelize.ENUM("Pending", "Approved", "Rejected"),
+        defaultValue: "Pending",
       },
       remark: {
         type: Sequelize.TEXT,
@@ -56,17 +56,19 @@ module.exports = {
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal(
+          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+        ),
       },
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('restaurant_diet_plans');
+    await queryInterface.dropTable("restaurant_diet_plans");
   },
 };

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('FoodFavoriteItems', {
+    await queryInterface.createTable("FoodFavoriteItems", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -18,12 +18,12 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       item_id: {
         type: Sequelize.INTEGER,
-        allowNull: false
-      }
+        allowNull: false,
+      },
     });
   },
 
@@ -34,5 +34,5 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-  }
+  },
 };

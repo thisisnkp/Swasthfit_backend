@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('FoodCategories', {
+    await queryInterface.createTable("FoodCategories", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -29,41 +29,43 @@ module.exports = {
       },
       img: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       created_by: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: 'FoodRestaurants',
-          key: 'id'
+          model: "FoodRestaurants",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       parent_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: 'FoodCategories',
-          key: 'id',
+          model: "FoodCategories",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       status: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true
+        defaultValue: true,
       },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal(
+          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+        ),
       },
     });
   },
@@ -75,6 +77,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('FoodCategories');
-  }
+    await queryInterface.dropTable("FoodCategories");
+  },
 };

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -9,26 +9,26 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('FoodItems', {
+    await queryInterface.createTable("FoodItems", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       category_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: 'FoodCategories',
-          key: 'id'
+          model: "FoodCategories",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       menu_name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       description: {
         type: Sequelize.STRING,
@@ -36,46 +36,46 @@ module.exports = {
       },
       menu_img: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       status: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       total_quantity: {
         type: Sequelize.INTEGER,
-        allowNull: true
+        allowNull: true,
       },
       price: {
         type: Sequelize.FLOAT,
-        allowNull: true
+        allowNull: true,
       },
       is_veg: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       is_recommended: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       created_by: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: 'FoodRestaurants',
-          key: 'id'
+          model: "FoodRestaurants",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       created_at: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updated_at: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
 
@@ -86,6 +86,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('FoodItems');
-  }
+    await queryInterface.dropTable("FoodItems");
+  },
 };

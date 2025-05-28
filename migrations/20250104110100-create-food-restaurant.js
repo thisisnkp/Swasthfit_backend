@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -9,137 +9,137 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('FoodRestaurants', {
+    await queryInterface.createTable("FoodRestaurants", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       vendorId: {
         type: Sequelize.INTEGER,
-        allowNull: true
+        allowNull: true,
       },
       username: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       password: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       title: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       rimg: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       status: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true
+        defaultValue: true,
       },
       full_address: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       pincode: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       landmark: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       latitude: {
         type: Sequelize.FLOAT,
-        allowNull: false
+        allowNull: false,
       },
       longitude: {
         type: Sequelize.FLOAT,
-        allowNull: false
+        allowNull: false,
       },
       store_charge: {
         type: Sequelize.FLOAT,
-        allowNull: true
+        allowNull: true,
       },
       bank_name: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       ifsc: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       receipt_name: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       acc_number: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       rest_status: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       sdesc: {
         type: Sequelize.TEXT,
-        allowNull: true
+        allowNull: true,
       },
       pan_no: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       gst_no: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       fssai_no: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       aadhar_no: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       aadhar_image: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       is_popular: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       is_fitmode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       is_dietpkg: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       is_dining: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       is_recommended: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       created_by: {
         type: Sequelize.INTEGER,
-        allowNull: true
+        allowNull: true,
       },
       created_at: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updated_at: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
 
@@ -150,6 +150,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('FoodRestaurants');
-  }
+    await queryInterface.dropTable("FoodRestaurants");
+  },
 };
