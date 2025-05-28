@@ -1,21 +1,22 @@
 const bcrypt = require("bcrypt");
 const config = require("../../config");
 const jwt = require("jsonwebtoken");
-const Admin = require("./admin.model");
+const Admin = require("./admin.model"); // Ensure this path is correct
 const nodemailer = require("nodemailer");
 const User = require("../user/user.model");
 const GymOwner = require("../admin/models/GymOwners");
 require("dotenv").config();
-const FoodRestaurant= require("../food/models/Restaurant");
+const FoodRestaurant = require("../food/models/Restaurant"); // Keep this if used elsewhere, but not for admin reset
 const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, admin_type, status, image } = req.body;
 
-
     if (!gmailRegex.test(email)) {
-      return res.status(400).json({ message: "Only Gmail email addresses are allowed!" });
+      return res
+        .status(400)
+        .json({ message: "Only Gmail email addresses are allowed!" });
     }
     // Check if the email already exists
     const existingAdmin = await Admin.findOne({ where: { email } });
@@ -76,85 +77,117 @@ exports.signin = async (req, res) => {
   }
 };
 
-// send reset password link 
+// send reset password link for Admin
 exports.resetPassword = async (req, res) => {
   const { email } = req.body;
 
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   try {
-    // Check if email exists in DB (assuming username = email)
-    const restaurant = await FoodRestaurant.findOne({ where: { username: email } });
+    // Check if email exists in Admin DB
+    const admin = await Admin.findOne({ where: { email: email } }); // Changed to Admin model
 
-    if (!restaurant) {
-      return res.status(404).json({ message: "Email is not registered" });
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ message: "Admin not found with this email." }); // Changed message
     }
 
     // Email exists — send reset link
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
-        user: "shweta.ladne.averybit@gmail.com",
-        pass: "poai mggb pklw likw",
+        user: "shweta.ladne.averybit@gmail.com", // Use your actual Gmail email
+        pass: "poai mggb pklw likw", // Use your generated App Password for Gmail
       },
     });
 
     const mailOptions = {
-      from: "your-email@gmail.com",
+      from: "your-email@gmail.com", // This should be your actual sending email
       to: email,
       subject: "Password Reset Request",
       html: `
-        <h2>Password Reset</h2>
+        <h2>Admin Password Reset</h2>
+        <p>You requested a password reset for your admin account.</p>
         <p>Click <a href="http://localhost:5173/reset-password-link">here</a> to reset your password</p>
+        <p>If you did not request this, please ignore this email.</p>
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
     return res.json({
-      message: "Reset password link has been sent to your email",
+      message: "Admin password reset link has been sent to your email", // Changed message
     });
   } catch (error) {
-    console.error("Reset error:", error);
-    return res.status(500).json({ message: "Server error. Try again later." });
+    console.error("Admin Password Reset Email Error:", error); // Specific error log
+    return res
+      .status(500)
+      .json({ message: "Server error sending reset link. Try again later." });
   }
 };
 
-// set new pasword 
+// set new password for Admin
 exports.handlePasswordReset = async (req, res) => {
-  const { username, newPassword, confirmPassword } = req.body;
+  const { username, newPassword, confirmPassword } = req.body; // username here typically refers to email
 
   if (!username)
     return res.status(400).json({ message: "Username (email) is required" });
 
   if (!newPassword || !confirmPassword)
-    return res.status(400).json({ message: "Both password fields are required" });
+    return res
+      .status(400)
+      .json({ message: "Both password fields are required" });
 
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: "Passwords do not match" });
 
   try {
-    // Find restaurant by username (which holds email)
-    const restaurant = await FoodRestaurant.findOne({ where: { username } });
+    // Find admin by username (which holds email)
+    const admin = await Admin.findOne({ where: { email: username } }); // Changed to Admin model
 
-    if (!restaurant) {
-      return res.status(404).json({ message: "Restaurant not found with this username" });
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ message: "Admin not found with this username (email)." }); // Changed message
     }
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    restaurant.password = hashedPassword;
-    await restaurant.save();
+    admin.password = hashedPassword;
+    await admin.save();
 
-    return res.json({ message: "Password has been successfully reset" });
+    return res.json({ message: "Admin password has been successfully reset" }); // Changed message
   } catch (err) {
-    console.error("Password reset error:", err);
-    return res.status(500).json({ message: "Server error. Please try again." });
+    console.error("Admin Password Update Error:", err); // Specific error log
+    return res
+      .status(500)
+      .json({ message: "Server error resetting password. Please try again." });
   }
 };
 
+// NEW FUNCTION TO GET ADMIN PROFILE BY ID
+exports.getAdminProfile = async (req, res) => {
+  try {
+    const adminId = req.params.id;
+    const admin = await Admin.findByPk(adminId, {
+      attributes: {
+        exclude: ["password", "forget_password_token", "remember_token"],
+      }, // Exclude sensitive data
+    });
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found." });
+    }
+
+    return res.status(200).json({ user: admin }); // Keep 'user' key for frontend compatibility
+  } catch (error) {
+    console.error("Error fetching admin profile:", error);
+    return res.status(500).json({ message: "Server error fetching profile." });
+  }
+};
 
 const twilio = require("twilio");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;

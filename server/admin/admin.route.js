@@ -13,6 +13,7 @@ const {
   sendSMS,
   sendEmail,
   registerGymOwner,
+  getAdminProfile, // <-- ADD THIS
 } = require("./admin.controller");
 
 const {
@@ -59,6 +60,7 @@ router.post("/signup", signup);
 router.post("/signin", signin);
 router.post("/reset-password", resetPassword);
 router.post("/reset-password-link", handlePasswordReset);
+router.get("/profile/:id", authMiddleware, getAdminProfile);
 router.post("/send-sms", sendSMS);
 router.post("/mail", sendEmail);
 router.post("/staff", registerGymOwner);
