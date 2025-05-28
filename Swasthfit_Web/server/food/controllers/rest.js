@@ -301,107 +301,6 @@ exports.updateRestaurant = async (req, res) => {
   }
 };
 
-// exports.updateRestaurant = async (req, res) => {
-//   try {
-//     const {
-//       title,
-//       status,
-//       is_popular,
-//       is_fitmode,
-//       is_dietpkg,
-//       is_dining,
-//       full_address,
-//       pincode,
-//       landmark,
-//       latitude,
-//       longitude,
-//       store_charge,
-//       bank_name,
-//       ifsc,
-//       receipt_name,
-//       acc_number,
-//       rest_status,
-//       sdesc,
-//       pan_no,
-//       gst_no,
-//       fssai_no,
-//       aadhar_no,
-//       diet_pack_id,
-//     } = req.body;
-
-//     const restaurant = await FoodRestaurant.findByPk(req.params.id, {
-//       include: {
-//         model: DietPackage,
-//         as: "dietPackage",
-//       },
-//     });
-
-//     if (!restaurant) {
-//       return res.status(404).json({ error: "Restaurant not found" });
-//     }
-
-//     let rimg = restaurant.rimg;
-//     let aadhar_image = restaurant.aadhar_image;
-
-//     if (req.files && req.files.rimg) {
-//       const uploadedRimg = await fileUploaderSingle(
-//         "./public/uploads/",
-//         req.files.rimg,
-//       );
-//       rimg = uploadedRimg.newFileName;
-//     }
-
-//     if (req.files && req.files.aadhar_image) {
-//       const uploadedAadhar = await fileUploaderSingle(
-//         "./public/uploads/",
-//         req.files.aadhar_image,
-//       );
-//       aadhar_image = uploadedAadhar.newFileName;
-//     }
-
-//     // Update the restaurant
-//     await restaurant.update({
-//       title,
-//       rimg,
-//       status,
-//       is_popular,
-//       is_fitmode,
-//       is_dietpkg,
-//       is_dining,
-//       full_address,
-//       pincode,
-//       landmark,
-//       latitude,
-//       longitude,
-//       store_charge,
-//       bank_name,
-//       ifsc,
-//       receipt_name,
-//       acc_number,
-//       rest_status,
-//       sdesc,
-//       pan_no,
-//       gst_no,
-//       fssai_no,
-//       aadhar_no,
-//       aadhar_image,
-//       diet_pack_id,
-//     });
-
-//     return res.status(200).json({
-//       status: true,
-//       message: "Restaurant updated successfully",
-//       data: restaurant,
-//     });
-//   } catch (error) {
-//     console.error("Error updating restaurant:", error);
-//     return res
-//       .status(500)
-//       .json({ status: false, message: "Internal server error" });
-//   }
-// };
-
-// Delete a restaurant
 exports.deleteRestaurant = async (req, res) => {
   try {
     const restaurant = await FoodRestaurant.findByPk(req.params.id);
@@ -577,72 +476,6 @@ exports.getRestaurantWithMenu = async (req, res) => {
   }
 };
 
-// exports.getRestaurantOrders = async (req, res) => {
-//   const restaurantId = req.params.restaurantId;
-
-//   try {
-//     const restaurant = await FoodRestaurant.findByPk(restaurantId, {
-//       include: [
-//         {
-//           model: FoodOrders,
-//           as: "orders",
-//         },
-//       ],
-//     });
-
-//     if (!restaurant) {
-//       return res.status(404).json({
-//         status: false,
-//         message: "Restaurant not found",
-//       });
-//     }
-
-//     const formattedOrders = restaurant.orders.map((order) => {
-//       let addressDetails = order.address_details;
-//       let itemDetails = order.item_details;
-
-//       // Handle double-encoded JSON safely
-//       const parseJSON = (str) => {
-//         try {
-//           const parsed = JSON.parse(str);
-//           return typeof parsed === "string" ? JSON.parse(parsed) : parsed;
-//         } catch {
-//           return {};
-//         }
-//       };
-
-//       return {
-//         ...order.toJSON(),
-//         address_details: parseJSON(addressDetails),
-//         item_details: parseJSON(itemDetails),
-//       };
-//     });
-
-//     // Count cancelled orders
-//     const cancelledOrdersCount = formattedOrders.filter(order => order.status === "Rejected").length;
-
-//     // ✅ Total price sum (assuming field name is order_price)
-//     const totalOrderPrice = formattedOrders.reduce((sum, order) => {
-//       return sum + parseFloat(order.total_amount || 0); // add safely
-//     }, 0);
-
-//     res.status(200).json({
-//       status: true,
-//       message: "Orders for this restaurant",
-//       count: formattedOrders.length,
-//       cancelled_count: cancelledOrdersCount,
-//       total_order_price: totalOrderPrice.toFixed(2), // 👈 sum added here
-//       data: formattedOrders,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching restaurant orders:", error);
-//     res.status(500).json({
-//       status: false,
-//       message: "Server error",
-//       error: error.message,
-//     });
-//   }
-// };
 exports.getRestaurantOrders = async (req, res) => {
   const restaurantId = req.params.restaurantId;
 
@@ -818,50 +651,7 @@ exports.getUsersForRestaurant = async (req, res) => {
   }
 };
 
-const JWT_SECRET = "q3tmD1Gp5uTwT2Xk4bZa9V2aHs7pJ9Fz3mQFq0wz";
 
-
-// exports.Restlogin = async (req, res) => {
-//   const { username, password } = req.body;
-
-//   try {
-//     // Mandatory check
-//     if (!username || !password) {
-//       return res.status(400).json({ message: "Username and password are required." });
-//     }
-
-//     // Find restaurant by username
-//     const restaurant = await FoodRestaurant.findOne({ where: { username } });
-
-//     if (!restaurant) {
-//       return res.status(404).json({ message: "Restaurant not found" });
-//     }
-
-  
-//     // Generate JWT token
-//     const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
-//       expiresIn: process.env.TOKEN_EXPIRATION,
-//     });
-
-//     // Return login success response (without password field)
-//     res.status(200).json({
-//       message: "Login successful",
-//       token,
-//       restaurant: {
-//         id: restaurant.id,
-//         username: restaurant.username,
-//         title: restaurant.title,
-//         full_address: restaurant.full_address,
-//         status: restaurant.status,
-//         rating: restaurant.rating,
-//         store_charge: restaurant.store_charge,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Login error:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
 
 
 exports.Restlogin = async (req, res) => {
@@ -888,9 +678,15 @@ exports.Restlogin = async (req, res) => {
     }
 
     // ✅ Generate JWT token
-    const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.TOKEN_EXPIRATION,
-    });
+   if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
+const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
+  expiresIn: process.env.TOKEN_EXPIRATION || '1d',
+});
+
+    
 
     // ✅ Return success (excluding password)
     res.status(200).json({
@@ -965,177 +761,65 @@ exports.getLoggedInRestaurantOrders = async (req, res) => {
 exports.addDietPlanToRestaurant = async (req, res) => {
   try {
     const {
-      client_diet_plan_id,
-      restaurant_id,
-      breakfast_price,
-      lunch_price,
-      dinner_price,
-      snacks_price,
-      combo_price,
-      status
+      dietPackageId, // previously client_diet_plan_id
+      restaurantId,  // previously restaurant_id
+      breakfast_price = null,
+      lunch_price = null,
+      dinner_price = null,
+      snacks_price = null,
+      combo_price = null,
+      status = "Pending"
     } = req.body;
 
-    // Validate required data
-    if (!client_diet_plan_id || !restaurant_id) {
-      return res.status(400).json({ message: "Missing required fields: client_diet_plan_id or restaurant_id" });
+    // Validate required fields
+    if (!dietPackageId || !restaurantId) {
+      return res.status(400).json({
+        message: "Missing required fields: dietPackageId or restaurantId"
+      });
     }
 
-    console.log("Received client_diet_plan_id:", client_diet_plan_id);
-    console.log("Received restaurant_id:", restaurant_id);
+    console.log("Received dietPackageId:", dietPackageId);
+    console.log("Received restaurantId:", restaurantId);
 
     // Check if restaurant exists
-    const restaurant = await FoodRestaurant.findOne({ where: { id: restaurant_id } });
+    const restaurant = await FoodRestaurant.findOne({ where: { id: restaurantId } });
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
     // Check if diet plan exists
-    const dietPlan = await ClientDietPlan.findOne({ where: { id: client_diet_plan_id } });
+    const dietPlan = await ClientDietPlan.findOne({ where: { id: dietPackageId } });
     if (!dietPlan) {
       return res.status(404).json({ message: "Diet plan not found" });
     }
 
     // Add to restaurant
     const newRestaurantDietPackage = await RestaurantDietPackage.create({
-      client_diet_plan_id,
-      restaurant_id,
+      client_diet_plan_id: dietPackageId,
+      restaurant_id: restaurantId,
       breakfast_price,
       lunch_price,
       dinner_price,
       snacks_price,
       combo_price,
-      status: status || "Pending",
+      status
     });
 
     return res.status(201).json({
       message: "✅ Diet plan successfully added to restaurant",
-      data: newRestaurantDietPackage,
+      data: newRestaurantDietPackage
     });
 
   } catch (error) {
     console.error("❌ Error adding diet plan:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
   }
 };
 
 
-// exports.userRegistration = async (req, res) => {
-//   try {
-//     const {
-//       user_name,
-//       user_mobile,
-//       user_height,
-//       user_weight,
-//       user_email,
-//       otpless_token,
-//       target_weight,
-//       per_exp,
-//       sickness,
-//       physical_activity,
-//       gender,
-//       fit_goal,
-//       user_aadhar,
-//       user_pan,
-//       user_bank,
-//       password,
-//       user_type,
-//       user_age, // Taking user_age as input
-//     } = req.body;
-
-//     // Validate required fields: user_mobile, user_email, password, and user_type
-//     if (!user_name || !user_email || !password || !user_type) {
-//       return res.status(400).json({
-//         status: 400,
-//         success: false,
-//         message:
-//           "Required fields (user_mobile, user_email, password, user_type) are missing.",
-//       });
-//     }
-
-//     // Ensure that fields expected to be arrays are valid arrays. Handle if they are not arrays.
-//     const ensureArray = (field, defaultArray = []) => {
-//       return Array.isArray(field) ? field : defaultArray;
-//     };
-
-//     // Check if user already exists by user_email
-//     const existingUserByEmail = await User.findOne({ where: { user_email } });
-//     if (existingUserByEmail) {
-//       return res.status(400).json({
-//         status: 407,
-//         success: false,
-//         message: "User is already registered with this email address.",
-//       });
-//     }
-
-//     // Hash the password before saving it
-//     const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
-
-//     // Create a new user record
-//     const newUser = await User.create({
-//       user_name: user_name || null,
-//       user_mobile: user_mobile || null,
-//       user_email,
-//       user_height: user_height || null, // Allow nulls for non-required fields
-//       user_weight: user_weight || null,
-//       otpless_token: otpless_token || null,
-//       user_dob: null,
-//       user_age: user_age || null,
-//       user_aadhar: user_aadhar || null,
-//       user_pan: user_pan || null,
-//       user_address: "",
-//       user_earned_coins: 0,
-//       user_gullak_money_earned: 0,
-//       user_gullak_money_used: 0,
-//       user_competitions: "",
-//       user_type,
-//       user_social_media_id: "",
-//       user_downloads: 0,
-//       user_ratings: "",
-//       user_qr_code: "",
-//       user_bank: user_bank || null,
-//       is_signup: 1,
-//       is_approved: 0,
-//       password: hashedPassword, // Use the hashed password here
-//     });
-
-//     // Create a RestVendor if user_type is "owner"
-//     if (user_type === "owner") {
-//       const newRestVendor = await Vendor.create({
-//         user_id: newUser.id, // Link the restvendor to the user
-//         name: newUser.user_name,
-//         email: newUser.user_email,
-//         phone: newUser.user_mobile,
-//         password: hashedPassword, // You can set a different password or leave it as is
-//         vendorType: "restaurant", // Default vendor type
-//       });
-
-//       console.log(`RestVendor created for user ID: ${newUser.id}`);
-//     }
-
-//     // Create JWT token
-//     const payload = { userId: newUser.id, user_mobile: newUser.user_mobile }; // Customize as needed
-//     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-//       expiresIn: "1h",
-//     }); // Set the expiration time for the token (1 hour)
-
-//     // Respond with success message and JWT
-//     return res.status(201).json({
-//       status: 200,
-//       success: true,
-//       message: "User registered successfully.",
-//       data: {
-//         user: newUser,
-//         token, // Sending the JWT token
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error during registration: ", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Internal server error.",
-//     });
-//   }
-// };
 
 exports.userRegistration = async (req, res) => {
   try {
