@@ -49,10 +49,8 @@ ClientDietPlan.init(
     },
     food_type: {
       type: DataTypes.ENUM("Compulsory", "Optional"),
-       defaultValue: "Compulsory", //function() {
-      //   // Make snacks optional by default
-      //   return this.meal_type === "Snacks" ? "Optional" : "Compulsory";
-      // },
+       defaultValue: "Compulsory", 
+     
     },
     remark: {
       type: DataTypes.TEXT,
@@ -124,7 +122,7 @@ ClientDietPlan.init(
     modelName: "ClientDietPlan",
     tableName: "client_diet_plans",
     underscored: true,
-    timestamps: true,
+    timestamps: false,
     createdAt: "created_at",
     updatedAt: "updated_at",
   }

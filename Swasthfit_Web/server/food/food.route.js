@@ -101,7 +101,7 @@ router
   .get(verifyToken, restaurantController.getRestaurantOrders);
 router
   .route("/rest/:id")
-  .get(verifyToken, restaurantController.getRestaurantById);
+  .get(verifyToken, restaurantController.getRestaurantById); 
 router
   .route("/menu/:id")
   .get(verifyToken, restaurantController.getRestaurantWithMenu);
@@ -126,6 +126,7 @@ router
   .route("/add-diet")
   .post(verifyToken, restaurantController.addDietPlanToRestaurant);
   router.route("/restaurant/:id/users").get(restaurantController.getUsersByRestaurantId);
+  router.route("/diets-by-restaurant/:restaurantId").get(verifyToken, restaurantController.getAllDietsByRestaurant);
 /******************** Rest Section End *********************/
 
 /******************** Food Item Section Start ******************/

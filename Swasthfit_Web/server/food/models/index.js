@@ -15,8 +15,6 @@ const RestaurantDietPackage = require("./restaurentdietpackage");
 
 // ===================== Associations ===================== //
 
-// FoodRestaurant ↔ DietPackage association
-// One restaurant can have many diet packages
 FoodRestaurant.hasMany(DietPackage, {
   foreignKey: "restaurant_id",
   as: "dietPackage", // Use plural name for clarity
