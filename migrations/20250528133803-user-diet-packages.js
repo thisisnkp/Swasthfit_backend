@@ -13,20 +13,10 @@ module.exports = {
       restaurant_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'food_restaurants', // Make sure this matches the actual table name
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
       },
       diet_package_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'diet_packages', // Make sure this matches the actual table name
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
       },
       status: {
         type: Sequelize.ENUM('pending', 'accepted', 'rejected'),
@@ -50,9 +40,35 @@ module.exports = {
         allowNull: true,
       },
     });
+
+    // Add foreign key for restaurant_id
+    await queryInterface.addConstraint('user_diet_packages', {
+      fields: ['restaurant_id'],
+      type: 'foreign key',
+      name: 'fk_userdiet_restaurant_id',
+      references: {
+        table: 'FoodRestaurants',
+        field: 'id',
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
+
+    // Add foreign key for diet_package_id
+    await queryInterface.addConstraint('user_diet_packages', {
+      fields: ['diet_package_id'],
+      type: 'foreign key',
+      name: 'fk_userdiet_package_id',
+      references: {
+        table: 'diet_packages',
+        field: 'id',
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.dropTable('user_diet_packages');
   },
 };

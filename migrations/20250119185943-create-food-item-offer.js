@@ -3,12 +3,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
     await queryInterface.createTable("FoodItemOffers", {
       id: {
         type: Sequelize.INTEGER,
@@ -19,12 +13,6 @@ module.exports = {
       item_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "FoodItems",
-          key: "id",
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
       },
       min_quantity: {
         type: Sequelize.INTEGER,
@@ -49,12 +37,6 @@ module.exports = {
       created_by: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: "FoodRestaurants",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
       },
       created_at: {
         type: Sequelize.DATE,
@@ -69,15 +51,35 @@ module.exports = {
         ),
       },
     });
+
+    // Add foreign key for item_id → FoodItems.id
+    await queryInterface.addConstraint("FoodItemOffers", {
+      fields: ["item_id"],
+      type: "foreign key",
+      name: "fk_fooditemoffers_itemid", // unique constraint name
+      references: {
+        table: "FoodItems",
+        field: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+
+    // Add foreign key for created_by → FoodRestaurants.id
+    await queryInterface.addConstraint("FoodItemOffers", {
+      fields: ["created_by"],
+      type: "foreign key",
+      name: "fk_fooditemoffers_createdby", // unique constraint name
+      references: {
+        table: "FoodRestaurants",
+        field: "id",
+      },
+      onDelete: "SET NULL",
+      onUpdate: "CASCADE",
+    });
   },
 
   async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
     await queryInterface.dropTable("FoodItemOffers");
   },
 };

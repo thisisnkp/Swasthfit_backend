@@ -6,8 +6,9 @@ module.exports = {
     await queryInterface.createTable("order_items", {
       order_id: {
         type: Sequelize.INTEGER,
+        allowNull: false,
         references: {
-          model: "food_orders", // must match actual DB table name
+          model: "foodorders", // Table containing order records
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -15,8 +16,9 @@ module.exports = {
       },
       item_id: {
         type: Sequelize.INTEGER,
+        allowNull: false,
         references: {
-          model: "food_items", // must match actual DB table name
+          model: "FoodItems", // ✅ Should match actual food item table
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -32,9 +34,16 @@ module.exports = {
         allowNull: false,
       },
     });
+
+    // Optional: Add composite primary key if needed
+    // await queryInterface.addConstraint("order_items", {
+    //   fields: ["order_id", "item_id"],
+    //   type: "primary key",
+    //   name: "pk_order_items"
+    // });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.dropTable("order_items");
   },
 };

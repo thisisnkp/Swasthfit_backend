@@ -293,7 +293,8 @@ router
   .post(verifyToken, invoiceController.createInvoice);
 router
   .route("/invoices/:id")
-  .get(verifyToken, invoiceController.getInvoiceById);
+  .get(verifyToken, invoiceController.getInvoiceById)
+  .put(verifyToken, invoiceController.updateInvoice); // <-- ADD THIS .put() METHOD;
 router.route("/invoice-all").get(verifyToken, invoiceController.getInvoicesAll);
 router
   .route("/invoice/delete/:id")
