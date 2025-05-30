@@ -234,28 +234,32 @@ exports.updateCategory = async (req, res) => {
       return res.status(404).json({ error: "Category not found." });
     }
 
-    const { name, description, parent_id } = req.body;
+    const { name, description, parent_id, status } = req.body;
 
-    let image = category.img; // default to existing image
+    let image = category.img; // keep existing image by default
 
-    if (req.files && req.files.img) {
-      const uploaded = await fileUploaderSingle(
-        "./public/uploads/",
-        req.files.img,
-      );
-      image = uploaded.newfileName;
-    }
+   if (req.files && req.files.img) {
+  const uploaded = await fileUploaderSingle("./public/uploads/", req.files.img);
+  console.log("Uploaded image info:", uploaded);
+  if (uploaded && uploaded.newFileName) {
+    image = uploaded.newFileName;
+  }
+  console.log("Final image to save:", image);
+}
+
 
     const updated = await category.update({
       name,
       description,
       parent_id,
+      status,  // include status
       img: image,
     });
 
-    // Add full image path in response
     const updatedData = updated.toJSON();
-    updatedData.img = image ? `${process.env.APP_URL}/uploads/${image}` : null;
+    updatedData.img = image ? `http://localhost:4001/public/uploads/${image}` : null;
+
+    console.log(updatedData);
 
     return res.status(200).json({
       status: true,
@@ -266,6 +270,47 @@ exports.updateCategory = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message });
   }
 };
+
+// exports.updateCategory = async (req, res) => {
+//   try {
+//     const category = await Category.findByPk(req.params.id);
+
+//     if (!category) {
+//       return res.status(404).json({ error: "Category not found." });
+//     }
+
+//     const { name, description, parent_id } = req.body;
+
+//     let image = category.img; // default to existing image
+
+//     if (req.files && req.files.img) {
+//       const uploaded = await fileUploaderSingle(
+//         "./public/uploads/",
+//         req.files.img,
+//       );
+//       image = uploaded.newfileName;
+//     }
+
+//     const updated = await category.update({
+//       name,
+//       description,
+//       parent_id,
+//       img: image,
+//     });
+
+//     // Add full image path in response
+//     const updatedData = updated.toJSON();
+//     updatedData.img = image ? `${process.env.APP_URL}/uploads/${image}` : null;
+
+//     return res.status(200).json({
+//       status: true,
+//       message: "Category updated successfully",
+//       data: updatedData,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ status: false, message: error.message });
+//   }
+// };
 // Delete a category
 exports.deleteCategory = async (req, res) => {
   try {

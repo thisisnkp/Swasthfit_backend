@@ -16,6 +16,7 @@ const invoiceController = require("./controllers/invoice");
 const clientdietplanController = require("./controllers/clientdietplan");
 const reportController = require("./controllers/report");
 const riderController = require("./controllers/rider");
+const storeSettingController = require("./controllers/storesetting");
 // const UserController = require("../user/user.controller")
 const {
   diningAdd,
@@ -33,14 +34,11 @@ const {
   authMiddleware,
   verifyToken,
 } = require("../../middlewares/authMiddleware");
-// const {verifyToken} =require("../../checkingAccess");
 const autoprefixer = require("autoprefixer");
 const { verify } = require("crypto");
-// router.route("/register", UserController.userRegistration);
 
 router.post("/signup", signup);
 router.post("/signin", signin);
-// router.post("/verifyToken", verifyToken);
 
 /******************** Categories Section Start ******************/
 router.route("/categories").get(verifyToken, categoryController.getCategories);
@@ -56,7 +54,7 @@ router.route("/categories/create").post(categoryController.createSubCategory);
 router
   .route("/categories/:id")
   .get(verifyToken, categoryController.getCategoryById)
-  .put(verifyToken, categoryController.updateCategory)  // Change this line
+  .put(verifyToken, categoryController.updateCategory) 
   .delete(verifyToken, categoryController.deleteCategory);
 router
   .route("/categories/upddate/:id")
@@ -64,13 +62,19 @@ router
 router.route("/category/delete/:id").delete(categoryController.deleteCategory);
 router.route("/category/export").get(verifyToken, categoryController.exportCategories);
 router.route("/category-import").post(verifyToken, categoryController.importCategories);
+
+
 /******************** Categories Section End *********************/
+
+
 router
   .route("/comission")
   .post(verifyToken, commissionController.createCommission);
 router
   .route("/comission")
   .get(verifyToken, commissionController.getCommissions);
+
+
 /***************** Vendor Section Route Start *****************/
 router
   .route("/vendor")
@@ -86,9 +90,13 @@ router
   .route("/vendors/:vendor_id/restaurants")
   .get(verifyToken, vendorController.getRestaurantsForVendor);
   router.route("/vendor/login").post( vendorController.vendorLogin)
+
+
 /***************** Vendor Section Route End *****************/
 
 /******************** Rest Section Start ******************/
+
+
 router.route("/rest/login").post(restaurantController.Restlogin);
 router.route("/rest/user-create").post(restaurantController.userRegistration)
 router.route("/user-login").post(restaurantController.userLogin);
@@ -127,9 +135,22 @@ router
   .post(verifyToken, restaurantController.addDietPlanToRestaurant);
   router.route("/restaurant/:id/users").get(restaurantController.getUsersByRestaurantId);
   router.route("/diets-by-restaurant/:restaurantId").get(verifyToken, restaurantController.getAllDietsByRestaurant);
-/******************** Rest Section End *********************/
 
+  
+/******************** Rest Section End *********************/
+/***************** store setting Section Route Start *****************/
+router.route("/store-setting-create")
+  .post(verifyToken, storeSettingController.createSettings)
+
+router.route("/store-setting/:restaurantId")
+  .get(verifyToken, storeSettingController.getSettingsByRestaurantId);
+  router.route("/store-setting/update/:restaurantId")
+  .put(verifyToken, storeSettingController.updateSettingsByRestaurantId);
+  
+/******************** Store Setting Section End *********************/
 /******************** Food Item Section Start ******************/
+
+
 router
   .route("/food")
   .get(verifyToken, foodItemController.getFoodItems)
@@ -147,13 +168,15 @@ router
 router
   .route("/food/delete/:food_item_id")
   .delete(verifyToken, foodItemController.deleteFoodItemById);
-// .get(authMiddleware , foodItemController.getFoodItemsByRestaurantId)
 router
   .route("/food/offer/:id")
   .get(verifyToken, foodItemController.getFoodItemsWithOffers);
-/******************** Food Item Section End *********************/
 
+
+/******************* Food Item Section End *********************/
 /******************** Diet Package Section Start ******************/
+
+
 router
   .route("/all-diet")
   .get(verifyToken, dietPackageController.getAllDietPackages);
@@ -166,9 +189,11 @@ router
   .delete(verifyToken, dietPackageController.deleteDietPackage)
   .get(verifyToken, dietPackageController.getDietPackageById);
 
-/******************** Diet Package Section End *********************/
 
+/******************** Diet Package Section End *********************/
 /******************** User Section Start ******************/
+
+
 router.route("/all-user").get(verifyToken, userController.getAllUsers);
 router.route("/user/profile/:id")
   .get(verifyToken, userController.getUserProfile);
@@ -207,15 +232,21 @@ router
 router
   .route("/diet-plans/:userId/:trainerId")
   .get(verifyToken, clientdietplanController.getDietPlansByUserAndTrainer);
-/******************** User Section End *********************/
 
+
+/******************** User Section End *********************/
 /******************** Offer Section Start ******************/
+
+
 router.route("/offer").post(verifyToken, offerController.createItemOffer);
 router.route("/offer").get(verifyToken, offerController.getOffers);
 router.route("/offer/:id").put(verifyToken, offerController.updateItemOffer);
-/******************** Offer Section End *********************/
 
+
+/******************** Offer Section End *********************/
 /******************** Report Section Start *********************/
+
+
 router
   .route("/report/create")
   .post(verifyToken, reportController.createStockReport);
@@ -228,23 +259,35 @@ router
 router
   .route("/report/:id")
   .get(verifyToken, reportController.getStockReportById);
+
+
 /******************** Report Section End *********************/
 
 /***************** Rider Section Route Start *****************/
+
+
 router.route("/rider-create").post(verifyToken, riderController.createRider);
 router.route("/rider/all").get(verifyToken, riderController.getAllRiders);
 router.route("/rider/:id").get(verifyToken, riderController.getRiderById);
 router
   .route("/rider/delete/:id")
   .delete(verifyToken, riderController.deleteRider);
+
+
+/******************** Rider Section End *********************/
 /***************** Dining Section Route Start *****************/
+
 router.get("/dining/add", diningAdd);
 router.get("/dining/edit/:id", diningAdd);
 router.get("/dining/list", diningList);
 router.post("/dining/create", diningCreateOrUpdate);
+
+
 /***************** Dining Section Route End *****************/
 
 /***************** Order Section Route Start *****************/
+
+
 router.route("/order").get(verifyToken, orderController.getAllOrders);
 router.route("/order/create").post(verifyToken, orderController.createorder);
 router
@@ -263,15 +306,16 @@ router
 router
   .route("/order/delete/:orderId")
   .delete(verifyToken, orderController.deleteOrder);
-  router.route("/order/user/all-order").get(verifyToken , orderController.getAllUsersWithOrders)
-/***************** Order Section Route End *****************/
+  router.route("/order/user/all-order").get(verifyToken , orderController.getAllUsersWithOrders);
 
-// home section Route start
+
+/***************** Order Section Route End *****************/
+/***************** Home Section Route Start *****************/
+
+
 router.route("/search").get(verify, homeController.searchFoodItems);
 router.route("/search/market").get(verifyToken, homeController.searchFoodItems);
 router.route("/home").get(verifyToken, homeController.getHomeData);
-
-// router.route("/near").get(authMiddleware , homeController.getNearbySearchedFoodItems);
 router
   .route("/home")
   .get(verifyToken, orderController.getUserAddressDetails)
@@ -282,7 +326,12 @@ router
   .post(verifyToken, orderController.getRestDetails)
   .post(verifyToken, orderController.getUserAddressDetails)
   .post(verifyToken, orderController.addAddressApi);
+
+
+/******************** Home Section End *********************/
 /***************** Invoice Section Route Start *****************/
+
+
 router
   .route("/invoices/create")
   .post(verifyToken, invoiceController.createInvoice);
@@ -293,16 +342,17 @@ router.route("/invoice-all").get(verifyToken, invoiceController.getInvoicesAll);
 router
   .route("/invoice/delete/:id")
   .delete(verifyToken, invoiceController.deleteInvoice);
+
+
+/***************** Invoice Section Route End *****************/
 /***************** Promotion Section Route Start *****************/
+
+
 router.get("/promotion/add", promotionAdd);
 router.get("/promotion/edit/:id", promotionAdd);
 router.get("/promotion/list", promotionList);
 router.post("/promotion/create", promotionCreateOrUpdate);
 /***************** Promotion Section Route End *****************/
 
-// ... existing code ...
 
-// // ... existing code ...
-
-// Export the router
 module.exports = router;
