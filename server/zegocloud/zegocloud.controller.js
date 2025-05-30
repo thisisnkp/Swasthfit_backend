@@ -33,11 +33,11 @@ exports.getZegoToken = (req, res) => {
 
 // Send a chat message (store in Firebase)
 exports.sendMessage = async (req, res) => {
-  //   const { userId, role } = req.user; // userId and role from JWT payload
+  const { id, user_type } = req.user || {};
 
-  // Fallback for testing
-  const userId = req.user?.userId || req.body.from || "test_user";
-  const role = req.user?.role || req.body.role || "user";
+  if (!id) {
+    return res.status(400).json({ message: "User ID missing in token" });
+  }
 
   const { to, message } = req.body;
 
@@ -45,47 +45,106 @@ exports.sendMessage = async (req, res) => {
     return res.status(400).json({ message: "Recipient and message required" });
   }
 
+  // Set user_type explicitly to 'user' or 'trainer'
+  let safeUserType = "user";
+  if (
+    user_type &&
+    (user_type.toLowerCase() === "trainer" || user_type === "trainer")
+  ) {
+    safeUserType = "trainer";
+  }
+
   const chatRef = admin.database().ref("chats").push();
   const chatMessage = {
-    from: userId,
+    from: id,
     to,
     message,
-    role,
+    user_type: safeUserType,
     timestamp: Date.now(),
   };
 
-  await chatRef.set(chatMessage);
-  res.json({ status: "Message sent", chatId: chatRef.key });
+  try {
+    await chatRef.set(chatMessage);
+    res.json({ status: "Message sent", chatId: chatRef.key });
+  } catch (error) {
+    console.error("Error sending message:", error);
+    res.status(500).json({ message: "Failed to send message" });
+  }
 };
 
 // Get chat history between two users
 exports.getChatHistory = async (req, res) => {
-  //   const { userId } = req.user; // userId from JWT payload
+  const userId = req.user?.id || req.user?.userId;
+  const toUserId = req.query.to;
 
-  // Fallback for testing
-  const userId = req.user?.userId || req.query.userId || "test_user";
-  const { withUser } = req.query;
-
-  if (!withUser) {
-    return res.status(400).json({ message: "withUser query param required" });
+  if (!toUserId) {
+    return res.status(400).json({ message: "'to' query param required" });
   }
 
-  const snapshot = await admin
-    .database()
-    .ref("chats")
-    .orderByChild("timestamp")
-    .once("value");
-  const chats = [];
-  snapshot.forEach((child) => {
-    const chat = child.val();
-    // Only include messages between these two users (in either direction)
-    if (
-      (chat.from === userId && chat.to === withUser) ||
-      (chat.from === withUser && chat.to === userId)
-    ) {
-      chats.push(chat);
-    }
-  });
+  try {
+    const snapshot = await admin
+      .database()
+      .ref("chats")
+      .orderByChild("timestamp")
+      .once("value");
 
-  res.json({ chats });
+    const chats = [];
+    snapshot.forEach((child) => {
+      const chat = child.val();
+      if (
+        (chat.from === userId && chat.to === toUserId) ||
+        (chat.from === toUserId && chat.to === userId)
+      ) {
+        chats.push(chat);
+      }
+    });
+
+    res.json({ chats });
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+    res.status(500).json({ message: "Failed to fetch chat history" });
+  }
+};
+
+// Schedule a meeting
+exports.endMeeting = async (req, res) => {
+  const { channelName } = req.body;
+  const channel = await Channel.findOne({ where: { channelName } });
+
+  if (!channel || channel.status !== "active") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Meeting not active or not found" });
+  }
+
+  channel.status = "completed";
+  await channel.save();
+
+  res.json({ success: true, message: "Meeting marked as completed" });
+};
+
+// Cancel a meeting
+exports.cancelMeeting = async (req, res) => {
+  const { channelName } = req.body;
+  const channel = await Channel.findOne({ where: { channelName } });
+  if (!channel || channel.status === "cancelled") {
+    return res.status(404).json({
+      success: false,
+      message: "Meeting not found or already cancelled",
+    });
+  }
+  channel.status = "cancelled";
+  await channel.save();
+
+  // Optionally notify participants
+  await sendInAppNotification(
+    channel.participant1,
+    `Meeting ${channel.channelName} has been cancelled`
+  );
+  await sendInAppNotification(
+    channel.participant2,
+    `Meeting ${channel.channelName} has been cancelled`
+  );
+
+  res.json({ success: true, message: "Meeting cancelled" });
 };

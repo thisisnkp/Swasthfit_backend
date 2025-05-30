@@ -1,5 +1,4 @@
 // index.js
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -16,6 +15,8 @@ const transaction = require("./Easebuzz/transaction");
 const transaction_date = require("./Easebuzz/tranaction_date");
 const payout = require("./Easebuzz/payout");
 const refund = require("./Easebuzz/refund");
+
+require("./server/zegocloud/reminderScheduler/reminderScheduler");
 
 const app = express();
 

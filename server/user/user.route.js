@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const loginAccess = require("../../login.middleware");
 const userController = require("./user.controller");
+const userDetailsController = require("./user-details/user.details.controller");
 const refreshJWT = require("../config/refreshJWT");
 const verifyJWT = require("../../checkingAccess");
 const authenticateJWT = require("../../authenticateJWT");
 const enquiryRoutes = require("../enquiry/enquiry.route");
 
-// route to create a user
+//route to create a user
 router.post(
   "/login",
   // loginAccess(),
@@ -20,6 +21,16 @@ router.post(
   // loginAccess(),
   userController.userRegistration
 );
+
+//route to create a trainer
+router.post(
+  "/trainer/register",
+  // loginAccess(),
+  userController.trainerRegistration
+);
+
+//route to update trainer profile
+router.put("/trainer/profile", verifyJWT, userController.updateTrainerProfile);
 
 //route to create a user
 router.post("/refreshToken", loginAccess(), refreshJWT.refreshToken);
@@ -52,6 +63,14 @@ router.get(
   "/user-fit-data/:userId",
   verifyJWT,
   userController.getUserFitDataByUserId
+);
+
+router.put("/user-details", verifyJWT, userController.updateUserDetails);
+
+router.get(
+  "/user-details/:userId",
+  verifyJWT,
+  userDetailsController.getUserDetailsByUserId
 );
 
 // Enquiry routes

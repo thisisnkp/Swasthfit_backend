@@ -22,7 +22,12 @@ module.exports = (sequelize, DataTypes) => {
     address: DataTypes.STRING,
     bank: DataTypes.TEXT,
     timeSlot: DataTypes.TEXT,
-    miscellaneous: DataTypes.TEXT
+    miscellaneous: DataTypes.TEXT,
+    wallet_id: {
+      type: DataTypes.STRING(5),
+      unique: true,
+      allowNull: true
+    }
   }, {
     sequelize,
     modelName: 'Trainer',

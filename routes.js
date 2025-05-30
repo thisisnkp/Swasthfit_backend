@@ -93,6 +93,10 @@ router.use("/diet/site/apis", dietRoutes);
 const membershipRoutes = require("./server/membership/membership.route");
 router.use("/membership/site/apis", membershipRoutes);
 
+// appmembership routes
+const appMembershipRoutes = require("./server/membershipApp/appmembership.route");
+router.use("/appmembership/site/apis", appMembershipRoutes);
+
 const empRoutes = require("./server/add_emp/emp.router");
 router.use("/emp/site/apis", empRoutes);
 
@@ -103,16 +107,17 @@ const easyBuzzRoutes = require("./server/easeBuzz_payment/payment.router");
 router.use("/easeBuzz/site/apis", easyBuzzRoutes);
 
 // Register ZEGOCLOUD channel routes under /channel
-const channelRouter = require("./server/zegocloud/video/channel.route");
+const channelRouter = require("./server/zegocloud/channel/channel.route");
 router.use("/channel/site/apis", channelRouter);
-
-// Register ZEGOCLOUD video routes under /video
-// const videoChannelRoutes = require("./server/zegocloud/video/channel.route");
-// router.use("/video/channel", videoChannelRoutes);
 
 // Register ZEGOCLOUD chat routes under /chat
 const zegoRouter = require("./server/zegocloud/zegocloud.route");
 router.use("/chat/site/apis", zegoRouter);
+
+const paymentRoute = require("./server/payments/payment.route");
+const allTransactionsRoute = require("./server/payments/allTransactions.route");
+router.use("/payments/site/apis", paymentRoute);
+router.use("/payments/site/apis", allTransactionsRoute);
 
 // Catch-all for Undefined Routes
 router.use((req, res) => {

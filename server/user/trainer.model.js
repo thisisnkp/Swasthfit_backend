@@ -15,6 +15,12 @@ const Trainer = sequelize.define(
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    wallet_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      comment: "Randomly generated wallet ID for the trainer",
+    },
     firstname: DataTypes.STRING,
     lastname: DataTypes.STRING,
     profile_photo: {
