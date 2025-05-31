@@ -1,42 +1,41 @@
-// pages/api/checkPermission.js
+// pages/api/checkUserPermission.js
+"use strict";
 const { Op } = require("sequelize");
-const Module = require("../role/models/Modules");
-const Permission = require("../role/models/Permission");
-const Role = require("../role/models/Role");
-const RolePermission = require("../role/models/RolePermission");
+const Module = require("../role/models/Modules"); // Adjust path
+const Permission = require("../role/models/Permission"); // Adjust path
+const Role = require("../role/models/Role"); // Adjust path
+const RolePermission = require("../role/models/RolePermission"); // Adjust path
+const GymOwner = require("../gym_owners/gym.Owner.model"); // Adjust path - This is your User/Staff model
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const { moduleName, action, staff_id } = req.body;
+  const { moduleName, featureName, action, staff_id } = req.body;
 
-  if (!moduleName || !action || !staff_id) {
+  if (!moduleName || !featureName || !action || !staff_id) {
     return res.status(400).json({
       hasPermission: false,
-      message: "Missing moduleName, action, or staff_id.",
+      message: "Missing moduleName, featureName, action, or staff_id.",
     });
   }
 
   try {
-    console.log("Input received:", { moduleName, action, staff_id });
-
-    // Fetch user's role from DB using staff_id
-    const user = await YourUserModel.findOne({
-      where: { id: staff_id },
-      attributes: ["id", "role_id"],
+    // 1. Fetch user's role_id
+    const staffUser = await GymOwner.findByPk(staff_id, {
+      attributes: ["id", "role_id"], // Assuming role_id is directly on GymOwner
     });
 
-    if (!user || !user.role_id) {
+    if (!staffUser || !staffUser.role_id) {
       return res.status(403).json({
         hasPermission: false,
-        message: "User or role not found.",
+        message: "User or role not found for the staff member.",
       });
     }
+    const roleId = staffUser.role_id;
 
-    const roleId = user.role_id;
-
+    // 2. Find the module
     const module = await Module.findOne({ where: { name: moduleName } });
     if (!module) {
       return res.status(404).json({
@@ -45,46 +44,59 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const permission = await Permission.findOne({
+    // 3. Find the specific permission entry for the feature within the module
+    const permissionEntry = await Permission.findOne({
       where: {
         module_id: module.id,
-        feature_name: {
-          [Op.contains]: [action],
-        },
+        feature_name: featureName,
       },
     });
 
-    if (!permission) {
+    if (!permissionEntry) {
       return res.status(403).json({
         hasPermission: false,
-        message: `No permission for action "${action}" on module "${moduleName}".`,
+        message: `No permission defined for feature "${featureName}" on module "${moduleName}".`,
       });
     }
 
-    const rolePermission = await RolePermission.findOne({
+    // 4. Check if the role is linked to this permission
+    const rolePermissionLink = await RolePermission.findOne({
       where: {
         role_id: roleId,
-        permission_id: permission.id,
+        permission_id: permissionEntry.id,
       },
     });
 
-    if (!rolePermission) {
+    if (!rolePermissionLink) {
       return res.status(403).json({
         hasPermission: false,
-        message: `Role doesn't have access to permission "${action}" on "${moduleName}".`,
+        message: `Role does not have access to feature "${featureName}" on module "${moduleName}".`,
       });
     }
 
-    const actionMap = {
-      view: permission.can_view,
-      add: permission.can_add,
-      update: permission.can_update,
-      delete: permission.can_delete,
-    };
+    // 5. Check the specific action (can_view, can_add, etc.)
+    let hasSpecificPermission = false;
+    switch (action.toLowerCase()) {
+      case "view":
+        hasSpecificPermission = permissionEntry.can_view === "All";
+        break;
+      case "add":
+        hasSpecificPermission = permissionEntry.can_add === "All";
+        break;
+      case "update": // Or "edit" - ensure consistency with your frontend
+        hasSpecificPermission = permissionEntry.can_update === "All";
+        break;
+      case "delete":
+        hasSpecificPermission = permissionEntry.can_delete === "All";
+        break;
+      default:
+        return res.status(400).json({
+          hasPermission: false,
+          message: `Invalid action: "${action}". Valid actions are view, add, update, delete.`,
+        });
+    }
 
-    const hasPermission = actionMap[action] === "All";
-
-    if (hasPermission) {
+    if (hasSpecificPermission) {
       return res.status(200).json({
         hasPermission: true,
         message: "Permission granted.",
@@ -92,14 +104,15 @@ module.exports = async function handler(req, res) {
     } else {
       return res.status(403).json({
         hasPermission: false,
-        message: `Permission "${action}" not allowed.`,
+        message: `Permission for action "${action}" on feature "${featureName}" in module "${moduleName}" is denied.`,
       });
     }
   } catch (error) {
     console.error("Permission check error:", error);
     return res.status(500).json({
       hasPermission: false,
-      message: "Internal server error.",
+      message: "Internal server error during permission check.",
+      error: error.message,
     });
   }
 };

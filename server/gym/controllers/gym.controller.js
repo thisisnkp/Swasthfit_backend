@@ -2,141 +2,17 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 //const User = require('../../user/user.model'); //user model
 // const Gym = require('../model/gym.model');
-// const gymOwners = require('../model/gymOwners.model')
+// const GymOwners = require('../model/GymOwners.model')
 // const gymSchedule = require('../model/gymSchedule.model');
-// const {Gym, gymOwners, GymSchedule} = require('../models');
+// const {Gym, GymOwners, GymSchedule} = require('../models');
 const Gym = require("../gym_owners/gym.model");
-const gymOwners = require("../gym_owners/gym.Owner.model");
+const GymOwners = require("../gym_owners/gym.Owner.model");
 const GymSchedule = require("../model/gymSchedule.model");
 const { fileUploaderSingle } = require("../../../fileUpload");
 const Membership = require("../../membership/membership/membership.model");
 const User = require("../../user/user.model");
+const { Op } = require("sequelize");
 
-/**
- * Registration API For registering GYM Owner
- */
-// exports.registration = async (req, res) => {
-//   try {
-//     // Validate required fields
-//     const requiredFields = [
-//       "owner_name",
-//       "mobile",
-//       "password", // Added password validation
-//       "gym_name",
-//       "address",
-//       "latitude",
-//       "longitude",
-//     ];
-
-//     for (const field of requiredFields) {
-//       if (!req.body[field]) {
-//         return res.status(400).json({
-//           status: 400,
-//           success: false,
-//           message: `Missing required field: ${field}`,
-//         });
-//       }
-//     }
-
-//     // Check if gym owner already exists
-//     const existingUser = await gymOwners.findOne({
-//       where: { mobile: req.body.mobile },
-//     });
-//     if (existingUser) {
-//       return res.status(400).json({
-//         status: 406,
-//         success: false,
-//         message: "User is already registered with this mobile number.",
-//       });
-//     }
-
-//     // Hash the password
-//     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
-//     // Upload profile image if provided
-//     let profileImage;
-//     if (req.files && req.files.profile_photo) {
-//       profileImage = await fileUploaderSingle("./uploads/gym/", req.files.profile_photo);
-//     } else {
-//       profileImage = "";
-//     }
-
-//     // Create a new gym owner
-//     const newGymOwner = await gymOwners.create({
-//       name: req.body.owner_name,
-//       mobile: req.body.mobile,
-//       alternate_mobile: req.body.alternate_mobile || "",
-//       email: req.body.email_id || "",
-//       password: hashedPassword, // Save the hashed password
-//       profile_image: profileImage.newFileName || "",
-//       pancard_name: req.body.pancard_name || "",
-//       pancard_no: req.body.pancard_number || "",
-//     });
-
-//     const ownerID = newGymOwner.id;
-
-//     // Create a new gym
-//     const gym = await Gym.create({
-//       owner_id: ownerID,
-//       gym_name: req.body.gym_name,
-//       gym_logo: req.body.gym_logo || "",
-//       gym_address: req.body.address,
-//       gym_geo_location: JSON.stringify({
-//         latitude: req.body.latitude,
-//         longitude: req.body.longitude,
-//       }),
-//       facilities: Array.isArray(req.body.facilities) ? req.body.facilities.join(",") : "",
-//       msme_certificate_number: req.body.msme_certificate_number || "",
-//       msme_certificate_photo: req.body.msme_certificate_photo || "",
-//       shop_certificate: req.body.shop_certificate || "",
-//       shop_certificate_photo: req.body.shop_certificate_photo || "",
-//       about_us: req.body.about_us || "",
-//       gst_details: req.body.gst_number || "",
-//       bank_details: JSON.stringify({
-//         bank_name: req.body.bank_name || null,
-//         account_holder_name: req.body.account_holder_name || null,
-//         account_number: req.body.account_number || null,
-//         ifsc_code: req.body.ifsc_code || null,
-//         cancel_cheque: req.body.cancel_cheque_photo || null,
-//       }),
-//     });
-
-//     const gymID = gym.id;
-
-//     // Create a gym schedule
-//     const newGymSchedule = await GymSchedule.create({
-//       gym_id: gymID,
-//       workout_details: Array.isArray(req.body.workout_details)
-//         ? JSON.stringify(req.body.workout_details)
-//         : JSON.stringify([]),
-//       timings: "",
-//       alternate_closing_time: "",
-//     });
-
-//     // Generate JWT token
-//     const token = jwt.sign(
-//       { id: newGymOwner.id, mobile: newGymOwner.mobile, email: newGymOwner.email },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "24h" } // Set token expiration to 24 hours
-//     );
-
-//     // Return success response
-//     res.status(200).json({
-//       status: 200,
-//       success: true,
-//       message: "Registration of gym successful!",
-//       data: {
-//         gym,
-//         token, // Include the token in the response
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error during gym registration:", error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// Getting All Gym Lists
 exports.gymsList = async (req, res) => {
   try {
     const offset = req.query.offset;
@@ -146,7 +22,7 @@ exports.gymsList = async (req, res) => {
       limit: parseInt(limit),
       include: [
         {
-          model: gymOwners,
+          model: GymOwners,
         },
       ],
     });
@@ -177,7 +53,7 @@ exports.gymLogin = async (req, res) => {
     }
 
     // Check if the user exists
-    const gymOwner = await gymOwners.findOne({ where: { mobile } });
+    const gymOwner = await GymOwners.findOne({ where: { mobile } });
     if (!gymOwner) {
       return res.status(404).json({ message: "Gym owner not found" });
     }
@@ -323,7 +199,7 @@ exports.createGym = async (req, res) => {
 
 exports.getUsersByGymId = async (req, res) => {
   try {
-    const { gym_id } = req.body; // Assuming gym_id comes from URL parameters
+    const  gym_id  = req.params.id; // Assuming gym_id comes from URL parameters
 
     if (!gym_id) {
       return res.status(400).json({
@@ -382,5 +258,184 @@ exports.getUsersByGymId = async (req, res) => {
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+exports.getGymClientStats = async (req, res) => {
+  const { gym_id } = req.params;
+  const now = new Date(); // Current date and time for active/inactive check
+
+  // Define start and end of today for sales calculation
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0
+  );
+  const endOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
+
+  if (!gym_id) {
+    return res.status(400).json({ message: "Gym ID is required." });
+  }
+
+  try {
+    // 1. Fetch all memberships for the given gym_id
+    //    Order by user_id and then by end_date descending
+    //    to easily find the latest membership for each user for active/inactive status.
+    const allMembershipsForGym = await Membership.findAll({
+      where: { gym_id: gym_id },
+      order: [
+        ["user_id", "ASC"],
+        ["end_date", "DESC"],
+      ],
+      // It's good practice to select only necessary attributes if performance is a concern
+      // attributes: ['user_id', 'end_date', 'price', 'created_at'],
+    });
+
+    let active_clients = 0;
+    let inactive_clients = 0;
+    const uniqueUserIds = new Set();
+    const processedUserIdsForStatus = new Set(); // To count each user once for active/inactive status
+    let total_collected_payments = 0;
+
+    if (!allMembershipsForGym || allMembershipsForGym.length === 0) {
+      // If no memberships are found at all for the gym
+      return res.status(200).json({
+        gym_id: gym_id,
+        total_clients: 0,
+        active_clients: 0,
+        inactive_clients: 0,
+        todays_sales: 0, // No sales if no memberships
+        total_collected_payments: 0, // No payments if no memberships
+        message: "No memberships found for this gym.",
+      });
+    }
+
+    // 2. Calculate client stats (active/inactive, total unique)
+    //    and sum up all payments for total_collected_payments
+    for (const membership of allMembershipsForGym) {
+      uniqueUserIds.add(membership.user_id); // For total unique clients count
+
+      // Summing up price for ALL memberships of this gym
+      total_collected_payments += parseFloat(membership.price);
+
+      // Determine active/inactive status based on the latest membership for each user
+      if (!processedUserIdsForStatus.has(membership.user_id)) {
+        const endDate = new Date(membership.end_date);
+        if (endDate >= now) {
+          // Compare with the current moment
+          active_clients++;
+        } else {
+          inactive_clients++;
+        }
+        processedUserIdsForStatus.add(membership.user_id);
+      }
+    }
+
+    const total_clients = uniqueUserIds.size;
+
+    // 3. Calculate Today's Sales
+    //    Sum 'price' for memberships of the given gym_id created today.
+    //    The 'created_at' field is used as per your model's timestamp configuration.
+    const todaysSalesResult = await Membership.sum("price", {
+      where: {
+        gym_id: gym_id,
+        created_at: {
+          // Assuming 'created_at' is the column name for creation timestamp
+          [Op.gte]: startOfToday,
+          [Op.lte]: endOfToday,
+        },
+      },
+    });
+
+    const todays_sales = todaysSalesResult || 0;
+
+    res.status(200).json({
+      gym_id: gym_id,
+      total_clients: total_clients,
+      active_clients: active_clients,
+      inactive_clients: inactive_clients,
+      todays_sales: parseFloat(todays_sales.toFixed(2)), // Ensure two decimal places
+      total_collected_payments: parseFloat(total_collected_payments.toFixed(2)), // Ensure two decimal places
+    });
+  } catch (error) {
+    console.error("Error fetching gym client stats and sales:", error);
+    res.status(500).json({
+      message: "Failed to retrieve statistics and sales.",
+      error: error.message,
+    });
+  }
+};
+
+// Controller function to create a new gym associated with an owner
+exports.createGymWithOwnerVerification = async (req, res) => {
+  const { email, password, gym_name } = req.body;
+
+  if (!email || !password || !gym_name) {
+    return res
+      .status(400)
+      .json({ message: "Email, password, and gym name are required." });
+  }
+
+  try {
+    // 1. Find the gym owner by email
+    const owner = await GymOwners.findOne({ where: { email: email } });
+
+    if (!owner) {
+      return res
+        .status(404)
+        .json({ message: "Gym owner not found with this email." });
+    }
+
+    // 2. Verify the password
+    // Assuming you are using bcrypt for password hashing when owner is created/updated.
+    // If you are storing plain text passwords (not recommended!), you can directly compare:
+    // const isPasswordMatch = password === owner.password;
+    const isPasswordMatch = await bcrypt.compare(password, owner.password); // owner.password should be the hashed password from DB
+
+    if (!isPasswordMatch) {
+      return res
+        .status(401)
+        .json({ message: "Invalid password for the gym owner." });
+    }
+
+    // 3. Create the new gym
+    const newGym = await Gym.create({
+      owner_id: owner.id, //
+      gym_name: gym_name, //
+      // business_type will use its default value "direct" if not provided
+      // Other fields like gym_logo, gym_address, etc., can be added here if provided
+      // or updated later through a different endpoint.
+      // For now, only essential fields are added.
+    });
+
+    res.status(201).json({ message: "Gym created successfully!", gym: newGym });
+  } catch (error) {
+    console.error("Error creating gym:", error);
+    // Check for Sequelize validation errors or other specific errors
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      return res
+        .status(400)
+        .json({ message: "Validation Error", errors: messages });
+    }
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const messages = error.errors.map((err) => err.message);
+      return res
+        .status(409)
+        .json({ message: "Conflict - Data already exists", errors: messages });
+    }
+    res.status(500).json({ message: "Server error while creating gym." });
   }
 };

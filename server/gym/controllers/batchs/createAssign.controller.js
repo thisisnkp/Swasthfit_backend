@@ -107,7 +107,7 @@ async function assignBatch(req, res) {
 // API to get all batches for a gym and the users assigned to them
 async function getBatchesWithAssignedUsers(req, res) {
   try {
-    const { gym_id } = req.body; // Assuming gym_id comes from URL parameters
+    const gym_id = req.params.id; // Assuming gym_id comes from URL parameters
 
     if (!gym_id) {
       return res.status(400).json({
@@ -159,7 +159,7 @@ async function getBatchesWithAssignedUsers(req, res) {
 
 async function getAllBatchesByGymId(req, res) {
   try {
-    const { gym_id } = req.body; // Assuming gym_id comes from URL parameters
+    const gym_id = req.params.id; // Assuming gym_id comes from URL parameters
 
     if (!gym_id) {
       return res.status(400).json({

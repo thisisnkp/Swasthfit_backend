@@ -1,6 +1,7 @@
 const Coupon = require("./discount_coupons.model");
 const UsedCoupon = require("../coupons/used_count_coupons.model");
 const sequelize = require("../../../sequelize");
+const { Sequelize, Op } = require("sequelize"); // Assuming you might need Op, Sequelize is for sequelize.fn/col
 
 exports.createCoupon = async (req, res) => {
   console.log("coupon");
@@ -183,6 +184,8 @@ exports.useCoupon = async (req, res) => {
 
 exports.getCouponsData = async (req, res) => {
   try {
+    const currentDate = new Date(); // Get the current date and time for comparison
+
     // Get all coupons
     const coupons = await Coupon.findAll();
 
@@ -199,7 +202,7 @@ exports.getCouponsData = async (req, res) => {
     // Convert usageData to a map for quick access
     const usageMap = {};
     usageData.forEach((item) => {
-      usageMap[item.coupon_id] = parseInt(item.total_used);
+      usageMap[item.coupon_id] = parseInt(item.total_used, 10); // Added radix for parseInt
     });
 
     // Prepare response data
@@ -212,7 +215,7 @@ exports.getCouponsData = async (req, res) => {
 
       if (
         coupon.apply_quantity_type === "limited" &&
-        coupon.apply_quantity != null
+        coupon.apply_quantity != null // Using != to catch null or undefined
       ) {
         remaining = Math.max(0, coupon.apply_quantity - usedCount);
       }
@@ -223,11 +226,33 @@ exports.getCouponsData = async (req, res) => {
         remaining_quantity: remaining,
       };
 
-      if (coupon.status === "active") {
-        activeCoupons.push(couponData);
-      } else if (coupon.status === "expired") {
-        expiredCoupons.push(couponData);
+      let isEffectivelyExpired = false;
+
+      // Check 1: If status is already 'expired'
+      if (coupon.status === "expired") {
+        isEffectivelyExpired = true;
       }
+      // Check 2: If 'valid_to' date has passed (and status wasn't already 'expired')
+      // This ensures that coupons past their valid_to date are treated as expired.
+      else if (coupon.valid_to) {
+        const validToDate = new Date(coupon.valid_to);
+        if (validToDate < currentDate) {
+          isEffectivelyExpired = true;
+          // Optionally, you might want to update couponData.status here if frontend relies on it
+          // couponData.status = "expired"; // Or add a new field like couponData.effective_status
+        }
+      }
+
+      if (isEffectivelyExpired) {
+        expiredCoupons.push(couponData);
+      } else if (coupon.status === "active") {
+        // Only add to activeCoupons if its original status is 'active'
+        // AND it hasn't been marked as effectively expired by the date check.
+        activeCoupons.push(couponData);
+      }
+      // Note: Coupons with other statuses (e.g., 'pending', 'draft') that are not
+      // 'active' and not deemed 'effectivelyExpired' will not be added to either list,
+      // maintaining the original logic's focus on 'active' and 'expired' categorizations.
     });
 
     res.status(200).json({

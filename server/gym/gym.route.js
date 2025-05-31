@@ -1,6 +1,10 @@
 const express = require("express");
 
-const { getUsersByGymId } = require("./controllers/gym.controller");
+const {
+  getUsersByGymId,
+  getGymClientStats,
+  createGymWithOwnerVerification,
+} = require("./controllers/gym.controller");
 
 const {
   // createGymOwner,
@@ -59,7 +63,9 @@ router.use(express.json());
 
 // Login API
 // router.post("/login", loginAccess(), gymLogin);
-router.get("/users/gym", getUsersByGymId);
+router.get("/users/gym/:id", getUsersByGymId);
+router.get("/gym/stats/:gym_id", getGymClientStats);
+router.post("/gyms/create-with-owner", createGymWithOwnerVerification);
 
 router.post("/register", Register);
 router.post("/login", gymLogin);
@@ -134,10 +140,15 @@ const {
   markAttendance,
   getAttendanceByGymId,
 } = require("./controllers/dashboard/getAllValues");
-router.get("/memberships/near-end", getMembershipsByGymId);
-router.get("/memberships/expired", getExpiredMembershipsByGymId);
+router.get("/memberships/near-end/:id", getMembershipsByGymId);
+router.get("/memberships/expired/:id", getExpiredMembershipsByGymId);
 router.post("/gym-attendance", markAttendance);
-router.get("/get-gym-attendance", getAttendanceByGymId);
+router.get("/get-gym-attendance/:id", getAttendanceByGymId);
+
+const {
+  getGymDashboardStats,
+} = require("./controllers/dashboard/getAllCountValues.controller");
+router.get("/gym/stats/:id", getGymDashboardStats);
 
 // batch routes for create and assign
 const {
@@ -148,13 +159,34 @@ const {
 } = require("./controllers/batchs/createAssign.controller");
 router.post("/batch", createBatch);
 router.post("/assign-batch", assignBatch);
-router.get("/get-batches", getBatchesWithAssignedUsers);
-router.get("/batches/gym", getAllBatchesByGymId);
+router.get("/get-batches/:id", getBatchesWithAssignedUsers);
+router.get("/batches/gym/:id", getAllBatchesByGymId);
 
 // birthday routes
 const {
   getUsersByBirthday,
 } = require("./controllers/birthday/getBirthdayOfUser.controller");
-router.get("/users/birthdays", getUsersByBirthday);
+router.get("/users/birthdays/:id", getUsersByBirthday);
+
+// get subscriptions of the gym users
+const {
+  getGymRegistrations,
+} = require("./controllers/subscriptions/getSubscriptions.controller");
+
+router.get("/registrations/:gym_id", getGymRegistrations);
+
+// APIs for fitness center page for gym details
+const {
+  createGymBasicInfo,
+  getGymBasicInfo,
+  updateGymBasicInfo,
+  updateGymLocationDetails,
+  createOrUpdateGymSchedule,
+} = require("./controllers/fitness-center/fitness-center.controller");
+router.post("/basic-info", createGymBasicInfo);
+router.put("/basic-info/:id", updateGymBasicInfo);
+router.get("/basic-info/:id", getGymBasicInfo);
+router.put("/location/:id", updateGymLocationDetails);
+router.post("/gym-schedule", createOrUpdateGymSchedule);
 
 module.exports = router;

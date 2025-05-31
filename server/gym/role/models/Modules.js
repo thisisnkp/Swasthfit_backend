@@ -21,7 +21,7 @@ Module.init(
   {
     sequelize,
     modelName: "Module",
-    tableName: "modules",
+    tableName: "gym_modules",
     timestamps: false,
   }
 );

@@ -11,7 +11,7 @@ const Membership = sequelize.define(
     },
 
     user_id: {
-      type: DataTypes.UUID,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     gym_id: {

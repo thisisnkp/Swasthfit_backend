@@ -21,10 +21,14 @@ Role.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    staff_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     sequelize,
-    tableName: "roles",
+    tableName: "gym_roles",
     timestamps: false,
   }
 );

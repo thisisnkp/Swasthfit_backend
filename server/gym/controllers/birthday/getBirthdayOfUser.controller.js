@@ -4,7 +4,7 @@ const User = require("../../../user/user.model");
 
 async function getUsersByBirthday(req, res) {
   try {
-    const { gym_id } = req.body;
+    const gym_id = req.params.id;
 
     if (!gym_id) {
       return res.status(400).json({

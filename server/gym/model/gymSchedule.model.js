@@ -1,9 +1,9 @@
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
 const Gym = require("../gym_owners/gym.model");
 
 const GymSchedule = sequelize.define(
-  "GymSchedule", // Corrected model name
+  "GymSchedule",
   {
     id: {
       type: Sequelize.INTEGER,
@@ -15,7 +15,7 @@ const GymSchedule = sequelize.define(
       type: Sequelize.INTEGER,
       allowNull: false,
       references: {
-        model: "Gyms", // Corrected model name for association
+        model: "Gyms",
         key: "id",
       },
     },
@@ -34,44 +34,49 @@ const GymSchedule = sequelize.define(
   },
   {
     sequelize,
-    modelName: "GymSchedule", 
+    modelName: "GymSchedule",
     tableName: "gym_schedule",
-    timestamps: true, 
-    underscored: true, 
+    timestamps: true,
+    underscored: true,
   }
 );
 
-// Define relationships
-// GymSchedule.associate = (models) => {
-//   if (models.Gym) {
-//     GymSchedule.belongsTo(models.Gym, {
-//       foreignKey: { name: 'gym_id', allowNull: false },
-//       onDelete: 'CASCADE',
-//     });
-//   }
-// };
-
-// Validate hook to ensure arrays are serialized before validation
-GymSchedule.addHook("beforeValidate", (gymSchedule, options) => {
+GymSchedule.addHook("beforeValidate", (gymScheduleInstance, options) => {
   const fieldsToSerialize = ["workout_details", "timings"];
 
   fieldsToSerialize.forEach((field) => {
-    if (Array.isArray(gymSchedule[field])) {
-      gymSchedule[field] = JSON.stringify(gymSchedule[field]); // Fixed typo
+    if (
+      typeof gymScheduleInstance[field] === "object" &&
+      gymScheduleInstance[field] !== null
+    ) {
+      gymScheduleInstance[field] = JSON.stringify(gymScheduleInstance[field]);
     }
   });
 });
 
-// Deserialize JSON strings into arrays after fetching
-GymSchedule.afterFind((gymSchedule, options) => {
-  if (gymSchedule) {
-    const fieldsToDeserialize = ["workout_details", "timings"];
+GymSchedule.addHook("afterFind", (foundResult, options) => {
+  const processInstance = (instance) => {
+    if (instance) {
+      const fieldsToDeserialize = ["workout_details", "timings"];
+      fieldsToDeserialize.forEach((field) => {
+        if (instance[field] && typeof instance[field] === "string") {
+          try {
+            instance[field] = JSON.parse(instance[field]);
+          } catch (e) {
+            console.error(
+              `Error parsing JSON for field ${field} in GymSchedule ID ${instance.id}:`,
+              e
+            );
+          }
+        }
+      });
+    }
+  };
 
-    fieldsToDeserialize.forEach((field) => {
-      if (typeof gymSchedule[field] === "string") {
-        gymSchedule[field] = JSON.parse(gymSchedule[field]);
-      }
-    });
+  if (Array.isArray(foundResult)) {
+    foundResult.forEach(processInstance);
+  } else {
+    processInstance(foundResult);
   }
 });
 

@@ -29,7 +29,7 @@ RolePermission.init(
   },
   {
     sequelize,
-    tableName: "role_permissions",
+    tableName: "gym_role_permissions",
     timestamps: false,
   }
 );

@@ -46,7 +46,7 @@ Permission.init(
   {
     sequelize,
     modelName: "Permission",
-    tableName: "permissions",
+    tableName: "gym_permissions",
     timestamps: false,
   }
 );

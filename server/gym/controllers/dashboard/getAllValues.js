@@ -6,7 +6,7 @@ const User = require("../../../user/user.model");
 
 async function getMembershipsByGymId(req, res) {
   try {
-    const { gym_id } = req.body;
+    const gym_id = req.params.id;
     const thresholdDays = 5; // Define the threshold in days
 
     if (!gym_id) {
@@ -60,7 +60,7 @@ async function getMembershipsByGymId(req, res) {
 
 async function getExpiredMembershipsByGymId(req, res) {
   try {
-    const { gym_id } = req.body;
+    const gym_id = req.params.id;
 
     if (!gym_id) {
       return res.status(400).json({
@@ -143,7 +143,7 @@ async function markAttendance(req, res) {
 
 async function getAttendanceByGymId(req, res) {
   try {
-    const { gym_id } = req.body;
+    const gym_id = req.params.id;
 
     if (!gym_id) {
       return res.status(400).json({
