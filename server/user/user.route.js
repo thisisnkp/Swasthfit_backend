@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const loginAccess = require("../../login.middleware");
 const userController = require("./user.controller");
+const trainerController = require("./trainer.controller");
 const userDetailsController = require("./user-details/user.details.controller");
 const refreshJWT = require("../config/refreshJWT");
 const verifyJWT = require("../../checkingAccess");
@@ -23,18 +24,12 @@ router.post(
 );
 
 //route to create a trainer
-router.post(
-  "/trainer/register",
-  // loginAccess(),
-  userController.trainerRegistration
-);
-
-//route to update trainer profile
-router.put("/trainer/profile", verifyJWT, userController.updateTrainerProfile);
+router.post("/trainer/register", trainerController.trainerRegistration); //trainer registration
+router.post("/trainer/verify-otp", trainerController.verifyOtp); //trainer otp verification
+router.put("/trainer/profile", verifyJWT, userController.updateTrainerProfile); //triner profile update
 
 //route to create a user
 router.post("/refreshToken", loginAccess(), refreshJWT.refreshToken);
-
 // Delete a user by ID
 router.delete("/user/:userId", loginAccess(), userController.deleteUser);
 
@@ -75,6 +70,5 @@ router.get(
 
 // Enquiry routes
 router.use("/enquiry", enquiryRoutes);
-
 // Export the router
 module.exports = router;

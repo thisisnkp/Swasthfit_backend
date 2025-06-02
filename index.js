@@ -22,7 +22,7 @@ const app = express();
 
 // Server
 const port = process.env.PORT || 4001;
-const host = process.env.HOST || 4001;
+// const host = process.env.HOST || 4001;
 
 // Middleware
 app.use(
@@ -122,13 +122,13 @@ app.post("/refund", (req, res) => refund.refund(req.body, config, res));
 
 app.use("/", Routes);
 
-// app.listen(port, "0.0.0.0", () => {
-//   console.log(`🚀 Server running at: http://10.0.0.40:${port}`);
-// });
-
-app.listen(port, host, () => {
-  console.log(`🚀 Server running at: http://${host}:${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 Server running at: http://"0.0.0.0":${port}`);
 });
+
+// app.listen(port, host, () => {
+//   console.log(`🚀 Server running at: http://${host}:${port}`);
+// });
 
 // const express = require("express");
 // const cors = require("cors");
