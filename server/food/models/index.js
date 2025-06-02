@@ -10,6 +10,7 @@ const Vendor = require("./Vendor");
 const User = require("../../user/user.model");
 const UserProductAction = require("./userproductaction");
 const ClientDietPlan = require("./clientdietplan");
+<<<<<<< HEAD
 // const ClientWorkout = require('./ClientWorkout');
 const RestaurantDietPackage = require("./restaurentdietpackage");
 
@@ -17,6 +18,13 @@ const RestaurantDietPackage = require("./restaurentdietpackage");
 
 // FoodRestaurant ↔ DietPackage association
 // One restaurant can have many diet packages
+=======
+const RestaurantDietPackage = require("./restaurentdietpackage");
+const RestaurantSettings = require('./storesetting');
+
+// ===================== Associations ===================== //
+
+>>>>>>> restaurent_backend
 FoodRestaurant.hasMany(DietPackage, {
   foreignKey: "restaurant_id",
   as: "dietPackage", // Use plural name for clarity
@@ -162,6 +170,25 @@ FoodOrders.belongsTo(User, {
 User.hasOne(Vendor, { foreignKey: "user_id", as: "vendor" });
 Vendor.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
+<<<<<<< HEAD
+=======
+
+
+// One FoodRestaurant has one RestaurantSettings
+FoodRestaurant.hasOne(RestaurantSettings, {
+  foreignKey: 'restaurant_id',
+  as: 'settings',  // alias for eager loading
+  onDelete: 'CASCADE',  // optional, if restaurant deleted then settings deleted
+  onUpdate: 'CASCADE',
+});
+
+// RestaurantSettings belongs to one FoodRestaurant
+RestaurantSettings.belongsTo(FoodRestaurant, {
+  foreignKey: 'restaurant_id',
+  as: 'restaurant',
+});
+
+>>>>>>> restaurent_backend
 // ===================== Export ===================== //
 
 module.exports = {

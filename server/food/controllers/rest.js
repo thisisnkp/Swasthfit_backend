@@ -301,6 +301,7 @@ exports.updateRestaurant = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // exports.updateRestaurant = async (req, res) => {
 //   try {
 //     const {
@@ -402,6 +403,8 @@ exports.updateRestaurant = async (req, res) => {
 // };
 
 // Delete a restaurant
+=======
+>>>>>>> restaurent_backend
 exports.deleteRestaurant = async (req, res) => {
   try {
     const restaurant = await FoodRestaurant.findByPk(req.params.id);
@@ -428,6 +431,7 @@ exports.deleteRestaurant = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // find nearbyRestaurent
 // exports.getNearbyRestaurants = async (req, res) => {
 //   try {
@@ -513,6 +517,9 @@ exports.deleteRestaurant = async (req, res) => {
 // };
 
 // Get Diet Packages for a Restaurant
+=======
+
+>>>>>>> restaurent_backend
 exports.getNearbyRestaurants = async (req, res) => {
   try {
     const { latitude, longitude, radius = 5 } = req.query; // Radius in km
@@ -523,12 +530,23 @@ exports.getNearbyRestaurants = async (req, res) => {
         .json({ error: "Latitude and Longitude are required" });
     }
 
+<<<<<<< HEAD
     const distanceQuery = `
       (6371 * acos(
         cos(radians(:latitude)) * cos(radians(latitude)) *
         cos(radians(longitude) - radians(:longitude)) +
         sin(radians(:latitude)) * sin(radians(latitude))
       ))`;
+=======
+const distanceQuery = `
+  (6371 * acos(
+    cos(radians(:latitude)) * cos(radians(\`FoodRestaurant\`.\`latitude\`)) *
+    cos(radians(\`FoodRestaurant\`.\`longitude\`) - radians(:longitude)) +
+    sin(radians(:latitude)) * sin(radians(\`FoodRestaurant\`.\`latitude\`))
+  ))
+`;
+
+>>>>>>> restaurent_backend
 
     const restaurants = await FoodRestaurant.findAll({
       attributes: {
@@ -581,7 +599,11 @@ exports.getRestaurantDietPackage = async (req, res) => {
     });
 
     const restaurantData = restaurant.toJSON();
+<<<<<<< HEAD
     console.log(restaurantData);
+=======
+
+>>>>>>> restaurent_backend
 
     return res.json({
       success: true,
@@ -597,7 +619,10 @@ exports.getRestaurantDietPackage = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> restaurent_backend
 exports.getRestaurantWithMenu = async (req, res) => {
   try {
     const { id } = req.params;
@@ -705,17 +730,30 @@ exports.getRestaurantOrders = async (req, res) => {
     // Count cancelled orders
     const cancelledOrdersCount = formattedOrders.filter(order => order.status === "Rejected").length;
 
+<<<<<<< HEAD
     // ✅ Total price sum (assuming field name is order_price)
     const totalOrderPrice = formattedOrders.reduce((sum, order) => {
       return sum + parseFloat(order.total_amount || 0); // add safely
     }, 0);
+=======
+    // Sum total order price for accepted orders only
+    const totalOrderPrice = formattedOrders
+      .filter(order => order.status !== "Rejected")
+      .reduce((sum, order) => {
+        return sum + parseFloat(order.total_amount || 0);
+      }, 0);
+>>>>>>> restaurent_backend
 
     res.status(200).json({
       status: true,
       message: "Orders for this restaurant",
       count: formattedOrders.length,
       cancelled_count: cancelledOrdersCount,
+<<<<<<< HEAD
       total_order_price: totalOrderPrice.toFixed(2), // 👈 sum added here
+=======
+      total_order_price: totalOrderPrice.toFixed(2), // sum only accepted orders
+>>>>>>> restaurent_backend
       data: formattedOrders,
     });
   } catch (error) {
@@ -763,9 +801,15 @@ exports.getDiet = async (req, res) => {
       },
       include: [
         {
+<<<<<<< HEAD
           model: DietPackage, // Assuming your diet package model is named DietPackage
           as: "dietPackage", // Alias to match the relationship
           required: false, // If some restaurants may not have a diet package, this allows those to still be fetched
+=======
+          model: DietPackage, 
+          as: "dietPackage", 
+          required: false,
+>>>>>>> restaurent_backend
         },
       ],
     });
@@ -834,6 +878,7 @@ exports.getUsersForRestaurant = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 const JWT_SECRET = "q3tmD1Gp5uTwT2Xk4bZa9V2aHs7pJ9Fz3mQFq0wz";
 
 
@@ -878,6 +923,8 @@ const JWT_SECRET = "q3tmD1Gp5uTwT2Xk4bZa9V2aHs7pJ9Fz3mQFq0wz";
 //     res.status(500).json({ message: "Server error" });
 //   }
 // };
+=======
+>>>>>>> restaurent_backend
 
 
 exports.Restlogin = async (req, res) => {
@@ -904,9 +951,21 @@ exports.Restlogin = async (req, res) => {
     }
 
     // ✅ Generate JWT token
+<<<<<<< HEAD
     const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
       expiresIn: process.env.TOKEN_EXPIRATION,
     });
+=======
+   if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
+const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
+  expiresIn: process.env.TOKEN_EXPIRATION || '1d',
+});
+
+    
+>>>>>>> restaurent_backend
 
     // ✅ Return success (excluding password)
     res.status(200).json({
@@ -978,6 +1037,7 @@ exports.getLoggedInRestaurantOrders = async (req, res) => {
     });
   }
 };
+<<<<<<< HEAD
 exports.addDietPlanToRestaurant = async (req, res) => {
   try {
     const {
@@ -1152,6 +1212,9 @@ exports.addDietPlanToRestaurant = async (req, res) => {
 //     });
 //   }
 // };
+=======
+
+>>>>>>> restaurent_backend
 
 exports.userRegistration = async (req, res) => {
   try {
@@ -1326,8 +1389,11 @@ exports.userLogin = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> restaurent_backend
 // Get all users for a specific restaurant
 exports.getUsersByRestaurantId = async (req, res) => {
   const restaurantId = req.params.id;
@@ -1357,3 +1423,119 @@ exports.getUsersByRestaurantId = async (req, res) => {
 };
 
 
+<<<<<<< HEAD
+=======
+exports.addDietPlanToRestaurant = async (req, res) => {
+  try {
+    const {
+      client_diet_plan_id,
+      restaurant_id,
+      breakfast_price,
+      lunch_price,
+      dinner_price,
+      snacks_price,
+      combo_price,
+      optional_item_price,
+      status = "Pending",
+      remark = null
+    } = req.body;
+
+    // Validate required fields
+    if (!client_diet_plan_id || !restaurant_id) {
+      return res.status(400).json({ message: "Missing diet plan ID or restaurant ID." });
+    }
+
+    // Check if diet plan exists
+    const dietPlan = await ClientDietPlan.findByPk(client_diet_plan_id);
+    if (!dietPlan) {
+      return res.status(404).json({ message: "Diet plan not found." });
+    }
+
+    // Check if restaurant exists
+    const restaurant = await FoodRestaurant.findByPk(restaurant_id);
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found." });
+    }
+
+    // Check if already added
+    const existing = await RestaurantDietPackage.findOne({
+      where: { client_diet_plan_id, restaurant_id }
+    });
+    if (existing) {
+      return res.status(409).json({ message: "Diet plan already added to this restaurant." });
+    }
+
+    // Add the diet plan to restaurant
+    const newEntry = await RestaurantDietPackage.create({
+      client_diet_plan_id,
+      restaurant_id,
+      breakfast_price,
+      lunch_price,
+      dinner_price,
+      snacks_price,
+      combo_price,
+      optional_item_price,
+      status,
+      remark
+    });
+
+    return res.status(201).json({
+      message: "✅ Diet plan successfully added to restaurant",
+      data: newEntry
+    });
+  } catch (error) {
+    console.error("❌ Error in addDietPlanToRestaurant:", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+
+// GET /food/site/apis/diets-by-restaurant/:restaurantId
+
+exports.getAllDietsByRestaurant = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+
+    if (!restaurantId) {
+      return res.status(400).json({ message: "Restaurant ID is required." });
+    }
+
+    const diets = await RestaurantDietPackage.findAll({
+      where: { restaurant_id: restaurantId },
+      include: [
+        {
+          model: ClientDietPlan,
+          as: "dietPlan",  // ✅ Correct alias here
+          attributes: [
+            "id",
+            "meal_type",
+            "food_item_name",
+            "optional_item_name",
+            "food_type",
+            "fats",
+            "protein",
+            "carbs",
+            "is_water_intake",
+            "water_intake",
+            "water_intake_unit",
+            "plan_days"
+          ]
+        }
+      ],
+      order: [[ "id"]]
+    });
+
+    return res.status(200).json({
+      message: "✅ Diet plans fetched successfully",
+      data: diets
+    });
+  } catch (error) {
+    console.error("❌ Error fetching diets by restaurant:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+>>>>>>> restaurent_backend

@@ -1,22 +1,36 @@
 const bcrypt = require("bcrypt");
 const config = require("../../config");
 const jwt = require("jsonwebtoken");
+<<<<<<< HEAD
 const Admin = require("./admin.model"); // Ensure this path is correct
+=======
+const Admin = require("./admin.model");
+>>>>>>> restaurent_backend
 const nodemailer = require("nodemailer");
 const User = require("../user/user.model");
 const GymOwner = require("../admin/models/GymOwners");
 require("dotenv").config();
+<<<<<<< HEAD
 const FoodRestaurant = require("../food/models/Restaurant"); // Keep this if used elsewhere, but not for admin reset
+=======
+const FoodRestaurant= require("../food/models/Restaurant");
+>>>>>>> restaurent_backend
 const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, admin_type, status, image } = req.body;
 
+<<<<<<< HEAD
     if (!gmailRegex.test(email)) {
       return res
         .status(400)
         .json({ message: "Only Gmail email addresses are allowed!" });
+=======
+
+    if (!gmailRegex.test(email)) {
+      return res.status(400).json({ message: "Only Gmail email addresses are allowed!" });
+>>>>>>> restaurent_backend
     }
     // Check if the email already exists
     const existingAdmin = await Admin.findOne({ where: { email } });
@@ -77,13 +91,18 @@ exports.signin = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // send reset password link for Admin
+=======
+// send reset password link 
+>>>>>>> restaurent_backend
 exports.resetPassword = async (req, res) => {
   const { email } = req.body;
 
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   try {
+<<<<<<< HEAD
     // Check if email exists in Admin DB
     const admin = await Admin.findOne({ where: { email: email } }); // Changed to Admin model
 
@@ -91,18 +110,31 @@ exports.resetPassword = async (req, res) => {
       return res
         .status(404)
         .json({ message: "Admin not found with this email." }); // Changed message
+=======
+    // Check if email exists in DB (assuming username = email)
+    const restaurant = await FoodRestaurant.findOne({ where: { username: email } });
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Email is not registered" });
+>>>>>>> restaurent_backend
     }
 
     // Email exists — send reset link
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
+<<<<<<< HEAD
         user: "shweta.ladne.averybit@gmail.com", // Use your actual Gmail email
         pass: "poai mggb pklw likw", // Use your generated App Password for Gmail
+=======
+        user: "shweta.ladne.averybit@gmail.com",
+        pass: "poai mggb pklw likw",
+>>>>>>> restaurent_backend
       },
     });
 
     const mailOptions = {
+<<<<<<< HEAD
       from: "your-email@gmail.com", // This should be your actual sending email
       to: email,
       subject: "Password Reset Request",
@@ -111,12 +143,21 @@ exports.resetPassword = async (req, res) => {
         <p>You requested a password reset for your admin account.</p>
         <p>Click <a href="http://localhost:5173/reset-password-link">here</a> to reset your password</p>
         <p>If you did not request this, please ignore this email.</p>
+=======
+      from: "your-email@gmail.com",
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+        <h2>Password Reset</h2>
+        <p>Click <a href="http://localhost:5173/reset-password-link">here</a> to reset your password</p>
+>>>>>>> restaurent_backend
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
     return res.json({
+<<<<<<< HEAD
       message: "Admin password reset link has been sent to your email", // Changed message
     });
   } catch (error) {
@@ -130,19 +171,37 @@ exports.resetPassword = async (req, res) => {
 // set new password for Admin
 exports.handlePasswordReset = async (req, res) => {
   const { username, newPassword, confirmPassword } = req.body; // username here typically refers to email
+=======
+      message: "Reset password link has been sent to your email",
+    });
+  } catch (error) {
+    console.error("Reset error:", error);
+    return res.status(500).json({ message: "Server error. Try again later." });
+  }
+};
+
+// set new pasword 
+exports.handlePasswordReset = async (req, res) => {
+  const { username, newPassword, confirmPassword } = req.body;
+>>>>>>> restaurent_backend
 
   if (!username)
     return res.status(400).json({ message: "Username (email) is required" });
 
   if (!newPassword || !confirmPassword)
+<<<<<<< HEAD
     return res
       .status(400)
       .json({ message: "Both password fields are required" });
+=======
+    return res.status(400).json({ message: "Both password fields are required" });
+>>>>>>> restaurent_backend
 
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: "Passwords do not match" });
 
   try {
+<<<<<<< HEAD
     // Find admin by username (which holds email)
     const admin = await Admin.findOne({ where: { email: username } }); // Changed to Admin model
 
@@ -150,12 +209,20 @@ exports.handlePasswordReset = async (req, res) => {
       return res
         .status(404)
         .json({ message: "Admin not found with this username (email)." }); // Changed message
+=======
+    // Find restaurant by username (which holds email)
+    const restaurant = await FoodRestaurant.findOne({ where: { username } });
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found with this username" });
+>>>>>>> restaurent_backend
     }
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password
+<<<<<<< HEAD
     admin.password = hashedPassword;
     await admin.save();
 
@@ -188,6 +255,18 @@ exports.getAdminProfile = async (req, res) => {
     return res.status(500).json({ message: "Server error fetching profile." });
   }
 };
+=======
+    restaurant.password = hashedPassword;
+    await restaurant.save();
+
+    return res.json({ message: "Password has been successfully reset" });
+  } catch (err) {
+    console.error("Password reset error:", err);
+    return res.status(500).json({ message: "Server error. Please try again." });
+  }
+};
+
+>>>>>>> restaurent_backend
 
 const twilio = require("twilio");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;

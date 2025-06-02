@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 "use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("restaurant_stock_reports", {
+=======
+'use strict';
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('restaurant_stock_reports', {
+>>>>>>> restaurent_backend
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -31,11 +39,20 @@ module.exports = {
       last_restocked_date: {
         type: Sequelize.DATEONLY,
         allowNull: false,
+<<<<<<< HEAD
       },
+=======
+      }
+>>>>>>> restaurent_backend
     });
   },
 
   async down(queryInterface, Sequelize) {
+<<<<<<< HEAD
     await queryInterface.dropTable("restaurant_stock_reports");
   },
+=======
+    await queryInterface.dropTable('restaurant_stock_reports');
+  }
+>>>>>>> restaurent_backend
 };

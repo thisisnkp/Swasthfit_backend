@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // const { Model, DataTypes } = require("sequelize");
 // const sequelize = require("../../../sequelize");
 // const FoodRestaurant = require("../models/Restaurant");
@@ -89,6 +90,9 @@
 // );
 
 // module.exports = DietPackage;
+=======
+
+>>>>>>> restaurent_backend
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
 const FoodRestaurant = require("../models/Restaurant");
@@ -167,6 +171,7 @@ DietPackage.init(
     modelName: "DietPackage",
     tableName: "diet_packages",
     timestamps: false,
+<<<<<<< HEAD
     // hooks: {
     //   afterCreate: async (dietPackage, options) => {
     //     try {
@@ -232,6 +237,9 @@ DietPackage.init(
     //     }
     //   },
     // }
+=======
+
+>>>>>>> restaurent_backend
     hooks: {
       afterCreate: async (dietPackage, options) => {
         try {

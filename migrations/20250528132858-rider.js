@@ -1,13 +1,25 @@
+<<<<<<< HEAD
 "use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("riders", {
+=======
+'use strict';
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('riders', {
+>>>>>>> restaurent_backend
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
+<<<<<<< HEAD
         allowNull: false,
+=======
+        allowNull: false
+>>>>>>> restaurent_backend
       },
       first_name: {
         type: Sequelize.STRING,
@@ -68,11 +80,20 @@ module.exports = {
       current_longitude: {
         type: Sequelize.DECIMAL(10, 7),
         allowNull: true,
+<<<<<<< HEAD
       },
+=======
+      }
+>>>>>>> restaurent_backend
     });
   },
 
   async down(queryInterface, Sequelize) {
+<<<<<<< HEAD
     await queryInterface.dropTable("riders");
   },
+=======
+    await queryInterface.dropTable('riders');
+  }
+>>>>>>> restaurent_backend
 };

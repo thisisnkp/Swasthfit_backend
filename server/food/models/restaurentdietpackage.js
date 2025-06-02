@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // // const { Model, DataTypes } = require("sequelize");
 // // const sequelize = require("../../../sequelize");
 // // const FoodRestaurant = require("../models/Restaurant");
@@ -115,6 +116,9 @@
 // });
 
 // module.exports = RestaurantDietPlan;
+=======
+
+>>>>>>> restaurent_backend
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
 const ClientDietPlan = require("../models/clientdietplan");

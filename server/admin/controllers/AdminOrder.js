@@ -1,6 +1,11 @@
 const Order = require("../models/order");
+<<<<<<< HEAD
 const User = require("../../food/models/User"); // Ensure this path points to the correct User model with user_name, user_email
 const Restaurant = require("../../food/models/Restaurant");
+=======
+const User = require("../../food/models/User");
+const Restaurant = require("../../food/models/Restaurant")
+>>>>>>> restaurent_backend
 exports.createOrders = async (req, res) => {
   try {
     const {
@@ -107,6 +112,10 @@ exports.deleteOrder = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> restaurent_backend
 // exports.getAllOrdes= async (req, res) => {
 //     try {
 //       const orders = await Order.findAll({
@@ -130,6 +139,7 @@ exports.deleteOrder = async (req, res) => {
 //     }
 //   }
 
+<<<<<<< HEAD
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
@@ -171,3 +181,33 @@ exports.getAllOrders = async (req, res) => {
     });
   }
 };
+=======
+
+
+exports.getAllOrders = async (req, res) => {
+    try {
+      const orders = await Order.findAll({
+        include: [{
+            model: User,
+            as: 'user', // Match alias defined in model
+            attributes: ['id', 'name', 'email', 'phone']
+        }],
+        order: [['order_date_time', 'DESC']]
+    });
+    
+
+        return res.status(200).json({
+            success: true,
+            data: orders
+        });
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch orders'
+        });
+    }
+};
+
+
+>>>>>>> restaurent_backend

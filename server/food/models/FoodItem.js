@@ -6,6 +6,7 @@ const FoodRestaurant = require("../models/Restaurant");
 const FoodOrders = require("../models/foodOrder")
 class FoodItem extends Model {}
 
+<<<<<<< HEAD
 // FoodItem.init({
 //     id: {
 //         type: DataTypes.INTEGER,
@@ -100,6 +101,9 @@ class FoodItem extends Model {}
 
 
 //  Define One-to-Many Relationship
+=======
+
+>>>>>>> restaurent_backend
 FoodItem.init({
     id: {
         type: DataTypes.INTEGER,

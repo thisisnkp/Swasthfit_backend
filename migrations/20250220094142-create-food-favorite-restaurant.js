@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 "use strict";
+=======
+'use strict';
+>>>>>>> restaurent_backend
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -9,7 +13,11 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
+<<<<<<< HEAD
     await queryInterface.createTable("FoodFavoriteResturants", {
+=======
+    await queryInterface.createTable('FoodFavoriteResturants', {
+>>>>>>> restaurent_backend
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -18,12 +26,21 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER,
+<<<<<<< HEAD
         allowNull: false,
       },
       rest_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+=======
+        allowNull: false
+      },
+      rest_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      }
+>>>>>>> restaurent_backend
     });
   },
 
@@ -34,5 +51,9 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
+<<<<<<< HEAD
   },
+=======
+  }
+>>>>>>> restaurent_backend
 };
