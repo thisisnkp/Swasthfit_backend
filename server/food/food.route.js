@@ -136,7 +136,7 @@ router
   router.route("/restaurant/:id/users").get(restaurantController.getUsersByRestaurantId);
   router.route("/diets-by-restaurant/:restaurantId").get(verifyToken, restaurantController.getAllDietsByRestaurant);
 
-  
+  router.route("/rest/market").post(restaurantController.generateToken);
 /******************** Rest Section End *********************/
 /***************** store setting Section Route Start *****************/
 
