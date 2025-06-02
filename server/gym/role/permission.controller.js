@@ -1,11 +1,18 @@
 // pages/api/checkUserPermission.js
 "use strict";
 const { Op } = require("sequelize");
-const Module = require("../role/models/Modules");
-const Permission = require("../role/models/Permission");
-const Role = require("../role/models/Role");
-const RolePermission = require("../role/models/RolePermission");
-const GymOwner = require("../gym_owners/gym.Owner.model"); // Your User/Staff model
+// const Module = require("../role/models/Modules");
+// const Permission = require("../role/models/Permission");
+// const Role = require("../role/models/Role");
+// const RolePermission = require("../role/models/RolePermission");
+// const GymOwner = require("../gym_owners/gym.Owner.model");
+const {
+  Module,
+  Permission,
+  Role,
+  RolePermission,
+  GymOwner,
+} = require("../models"); // Your User/Staff model
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {

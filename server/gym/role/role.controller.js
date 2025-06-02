@@ -1,14 +1,21 @@
-// const db = require("../models");
-const Role = require("../role/models/Role");
-const Module = require("../role/models/Modules");
-const Permission = require("../role/models/Permission");
-const RolePermission = require("../role/models/RolePermission");
-const GymOwner = require("../../gym/gym_owners/gym.Owner.model"); // Assuming GymOwner model has role_id and potentially its own gym_id
+// ../role/role.controller.js
+// const Role = require("../role/models/Role");
+// const Module = require("../role/models/Modules");
+// const Permission = require("../role/models/Permission");
+// const RolePermission = require("../role/models/RolePermission");
+// const GymOwner = require("../../gym/gym_owners/gym.Owner.model");
+const { Op } = require("sequelize"); // Import Op if not already
+const {
+  Module,
+  Permission,
+  Role,
+  RolePermission,
+  GymOwner,
+} = require("../models"); // Assuming index.js is in 'models' one level up
 
-//  Create a new role
 exports.createRole = async (req, res) => {
   try {
-    const { name, gym_id, staff_id } = req.body; // Expect gym_id and optional staff_id
+    const { name, gym_id, staff_id } = req.body;
 
     if (!name || !gym_id) {
       return res
@@ -16,38 +23,40 @@ exports.createRole = async (req, res) => {
         .json({ error: "Role name and gym_id are required" });
     }
 
-    // Check if role with the same name already exists for this gym
-    const existingRole = await Role.findOne({ where: { name, gym_id } });
+    const existingRole = await Role.findOne({
+      where: { name, gym_id: parseInt(gym_id) },
+    });
     if (existingRole) {
       return res
         .status(400)
         .json({ error: `Role "${name}" already exists for this gym` });
     }
 
-    // Create new role
-    const role = await Role.create({ name, gym_id, staff_id }); // Save with gym_id and staff_id
+    const role = await Role.create({
+      name,
+      gym_id: parseInt(gym_id),
+      staff_id: staff_id ? parseInt(staff_id) : null,
+    });
     res.status(201).json({ message: "Role created", role });
   } catch (err) {
+    console.error("Create Role Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Create a new module (Modules are global as per current model structure)
+// Create a new module (Modules are global)
 exports.createModule = async (req, res) => {
   try {
     const { name } = req.body;
-
     if (!name) {
       return res.status(400).json({ error: "Module name is required" });
     }
-
     const existingModule = await Module.findOne({ where: { name } });
     if (existingModule) {
       return res
         .status(400)
         .json({ error: "Module already exists with this name" });
     }
-
     const module = await Module.create({ name });
     res.status(201).json({ message: "Module created successfully", module });
   } catch (error) {
@@ -56,16 +65,16 @@ exports.createModule = async (req, res) => {
   }
 };
 
-// Create permission for a module and feature (Permissions are global as per current model structure)
+// Create permission for a module and feature (Defines global defaults)
 exports.createPermission = async (req, res) => {
   try {
     const {
       module_id,
       feature_name,
-      can_add,
-      can_view,
-      can_update,
-      can_delete,
+      can_add, // Default: "None" or "All"
+      can_view, // Default: "None" or "All"
+      can_update, // Default: "None" or "All"
+      can_delete, // Default: "None" or "All"
     } = req.body;
 
     if (!module_id || !feature_name) {
@@ -74,7 +83,7 @@ exports.createPermission = async (req, res) => {
         .json({ error: "module_id and feature_name are required" });
     }
 
-    const sanitizedFeatureName = feature_name.replace(/^"|"$/g, "");
+    const sanitizedFeatureName = feature_name.toString().replace(/^"|"$/g, "");
     const module = await Module.findByPk(module_id);
     if (!module) {
       return res.status(404).json({ error: "Module not found" });
@@ -89,6 +98,7 @@ exports.createPermission = async (req, res) => {
       });
     }
 
+    // These define the GLOBAL DEFAULT permissions for this feature
     const permission = await Permission.create({
       module_id,
       feature_name: sanitizedFeatureName,
@@ -98,19 +108,22 @@ exports.createPermission = async (req, res) => {
       can_delete: can_delete || "None",
     });
 
-    res
-      .status(201)
-      .json({ message: "Permission created successfully", permission });
+    res.status(201).json({
+      message: "Permission definition created successfully",
+      permission,
+    });
   } catch (error) {
     console.error("Create Permission Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// Assign permission to a role
+// Assign permission to a role (This typically just creates the link; specific action grants are separate)
+// This function might be less relevant if savePermissions handles everything.
+// Or it can be used to just establish a link with default RolePermission values.
 exports.assignPermissionToRole = async (req, res) => {
   try {
-    const { role_id, permission_id, gym_id } = req.body; // gym_id for validation
+    const { role_id, permission_id, gym_id } = req.body;
 
     if (!role_id || !permission_id || !gym_id) {
       return res
@@ -118,92 +131,181 @@ exports.assignPermissionToRole = async (req, res) => {
         .json({ error: "role_id, permission_id, and gym_id are required." });
     }
 
-    const role = await Role.findOne({ where: { id: role_id, gym_id: gym_id } });
+    const role = await Role.findOne({
+      where: { id: role_id, gym_id: parseInt(gym_id) },
+    });
     if (!role) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Invalid role_id or role does not belong to the specified gym_id.",
-        });
+      return res.status(404).json({
+        error:
+          "Invalid role_id or role does not belong to the specified gym_id.",
+      });
     }
 
     const permission = await Permission.findByPk(permission_id);
     if (!permission) {
       return res
-        .status(400)
+        .status(404)
         .json({ error: "Invalid permission_id. No such permission exists." });
     }
 
-    // Check if this permission is already assigned to the role
-    const existingRolePermission = await RolePermission.findOne({
+    const [rolePermission, created] = await RolePermission.findOrCreate({
       where: { role_id, permission_id },
+      defaults: {
+        // Default action grants when link is first created
+        role_id,
+        permission_id,
+        can_view: permission.can_view, // Inherit default from Permission table
+        can_add: permission.can_add,
+        can_update: permission.can_update,
+        can_delete: permission.can_delete,
+      },
     });
 
-    if (existingRolePermission) {
-      return res
-        .status(400)
-        .json({ error: "This permission is already assigned to the role." });
+    if (!created) {
+      return res.status(400).json({
+        error:
+          "This permission is already assigned to the role. Use savePermissions to update.",
+      });
     }
 
-    const rolePermission = await RolePermission.create({
-      role_id,
-      permission_id,
-    });
     res.status(201).json({
-      message: "Permission assigned to role",
+      message: "Permission assigned to role with default action grants.",
       rolePermission,
     });
   } catch (err) {
+    console.error("Assign Permission Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Get a specific role with its permissions, ensuring it belongs to the specified gym
-exports.getRoleWithPermissions = async (req, res) => {
-  try {
-    const { role_id } = req.params;
-    const { gym_id } = req.query; // Get gym_id from query parameter
+// Save/Update ROLE-SPECIFIC permissions for a role within a specific gym
+exports.savePermissions = async (req, res) => {
+  const { roleId, permissions: permissionsPayload, gym_id } = req.body;
+  console.log("Incoming Request Body for Save Permissions:", req.body);
 
-    if (!gym_id) {
-      return res
-        .status(400)
-        .json({ error: "gym_id query parameter is required." });
-    }
-
-    const role = await Role.findOne({
-      where: { id: role_id, gym_id: gym_id }, // Filter by role_id AND gym_id
-      include: [
-        {
-          model: RolePermission,
-          as: "rolePermissions",
-          include: [
-            {
-              model: Permission,
-              as: "permission",
-              include: [
-                {
-                  model: Module,
-                  as: "module",
-                },
-              ],
-            },
-          ],
-        },
-      ],
+  if (!roleId || !Array.isArray(permissionsPayload) || !gym_id) {
+    return res.status(400).json({
+      message:
+        "Invalid input: roleId, permissions array, and gym_id are required.",
     });
+  }
 
+  try {
+    const role = await Role.findOne({
+      where: { id: roleId, gym_id: parseInt(gym_id) },
+    });
     if (!role) {
-      return res
-        .status(404)
-        .json({
-          error: "Role not found for the specified role_id and gym_id.",
-        });
+      return res.status(404).json({
+        message: "Role not found or does not belong to the specified gym.",
+      });
     }
 
-    res.status(200).json({ message: "Role found!", role });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const results = [];
+
+    for (const moduleItem of permissionsPayload) {
+      const module = await Module.findOne({
+        where: { name: moduleItem.module },
+      });
+      if (!module) {
+        console.warn(`Module not found: ${moduleItem.module}. Skipping.`);
+        results.push({
+          module: moduleItem.module,
+          status: "Module not found",
+          skipped: true,
+        });
+        continue;
+      }
+
+      for (const feature of moduleItem.features) {
+        if (!feature.name || typeof feature.name !== "string") {
+          results.push({
+            module: moduleItem.module,
+            feature: feature.name,
+            status: "Invalid feature name",
+            skipped: true,
+          });
+          continue;
+        }
+
+        // Find the global Permission definition
+        const globalPermission = await Permission.findOne({
+          where: {
+            module_id: module.id,
+            feature_name: feature.name,
+          },
+        });
+
+        if (!globalPermission) {
+          console.warn(
+            `Global permission definition not found for feature: ${feature.name} in module: ${moduleItem.module}. Skipping.`
+          );
+          results.push({
+            module: moduleItem.module,
+            feature: feature.name,
+            status: "Global permission definition not found",
+            skipped: true,
+          });
+          continue;
+        }
+
+        // Now, find or create/update the RolePermission link with specific grants
+        const [rolePermissionLink, created] = await RolePermission.findOrCreate(
+          {
+            where: {
+              role_id: roleId,
+              permission_id: globalPermission.id,
+            },
+            defaults: {
+              // Values if creating new RolePermission
+              role_id: roleId,
+              permission_id: globalPermission.id,
+              can_view: feature.permissions.view ? "All" : "None",
+              can_add: feature.permissions.add ? "All" : "None",
+              can_update: feature.permissions.edit ? "All" : "None", // Assuming 'edit' maps to 'can_update'
+              can_delete: feature.permissions.delete ? "All" : "None",
+            },
+          }
+        );
+
+        if (!created) {
+          // If it already existed, update it
+          await rolePermissionLink.update({
+            can_view: feature.permissions.view ? "All" : "None",
+            can_add: feature.permissions.add ? "All" : "None",
+            can_update: feature.permissions.edit ? "All" : "None",
+            can_delete: feature.permissions.delete ? "All" : "None",
+          });
+          console.log(
+            `Updated RolePermission for role ${roleId}, permission ${globalPermission.id}`
+          );
+          results.push({
+            module: moduleItem.module,
+            feature: feature.name,
+            status: "Updated role-specific permission",
+          });
+        } else {
+          console.log(
+            `Created RolePermission for role ${roleId}, permission ${globalPermission.id}`
+          );
+          results.push({
+            module: moduleItem.module,
+            feature: feature.name,
+            status: "Created role-specific permission",
+          });
+        }
+      }
+    }
+
+    return res.json({
+      message: "Permissions processed for the role.",
+      details: results,
+    });
+  } catch (error) {
+    console.error("Save Permission Error:", error);
+    return res.status(500).json({
+      message: "Server error during permission saving",
+      error: error.message,
+    });
   }
 };
 
@@ -225,29 +327,18 @@ exports.getModules = async (req, res) => {
 // Get all roles for a specific gym
 exports.getRoles = async (req, res) => {
   try {
-    const { gym_id } = req.query; // Get gym_id from query parameter
-
+    const { gym_id } = req.query;
     if (!gym_id) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "gym_id query parameter is required.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "gym_id query parameter is required.",
+      });
     }
-
     const roles = await Role.findAll({
-      where: { gym_id: gym_id }, // Filter by gym_id
-      include: [
-        {
-          model: RolePermission,
-          as: "rolePermissions",
-        },
-      ],
+      where: { gym_id: parseInt(gym_id) },
+      // include: [{ model: RolePermission, as: "rolePermissions" }], // Optional: include links if needed for display
       order: [["name", "ASC"]],
-      distinct: true,
     });
-
     res.status(200).json({ success: true, roles });
   } catch (error) {
     console.error("Error fetching roles:", error);
@@ -255,148 +346,29 @@ exports.getRoles = async (req, res) => {
   }
 };
 
-// Save/Update permissions for a role within a specific gym
-exports.savePermissions = async (req, res) => {
-  const { roleId, permissions, gym_id } = req.body; // Expect gym_id for validation
-  console.log("Incoming Request Body for Save Permissions:", req.body);
-
-  if (!roleId || !Array.isArray(permissions) || !gym_id) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "Invalid input: roleId, permissions array, and gym_id are required.",
-      });
-  }
-
-  try {
-    const role = await Role.findOne({ where: { id: roleId, gym_id: gym_id } });
-    if (!role) {
-      return res
-        .status(404)
-        .json({
-          message: "Role not found or does not belong to the specified gym.",
-        });
-    }
-
-    // Optional: Clear existing RolePermissions for this role before adding new ones
-    // await RolePermission.destroy({ where: { role_id: roleId } });
-    // Deciding whether to clear or just add/update depends on desired behavior.
-    // The current loop updates permissions and creates RolePermission links if they don't exist.
-
-    for (const moduleItem of permissions) {
-      console.log("Processing Module:", moduleItem.module);
-      const module = await Module.findOne({
-        where: { name: moduleItem.module },
-      });
-      if (!module) {
-        console.warn(`Module not found: ${moduleItem.module}. Skipping.`);
-        continue; // Skip this module if not found, or return error
-        // return res.status(404).json({ message: `Module not found: ${moduleItem.module}` });
-      }
-
-      for (const feature of moduleItem.features) {
-        console.log(
-          "Processing Feature:",
-          feature,
-          "for Module ID:",
-          module.id
-        );
-
-        if (!feature.name || typeof feature.name !== "string") {
-          return res.status(400).json({
-            message: `Invalid feature name for module: ${moduleItem.module}`,
-          });
-        }
-
-        let existingPermission = await Permission.findOne({
-          where: {
-            module_id: module.id,
-            feature_name: feature.name,
-          },
-        });
-
-        if (!existingPermission) {
-          // If permission definition doesn't exist, you might want to create it
-          // Or return an error, depending on your application logic.
-          // For now, we'll assume permissions are pre-defined or created elsewhere.
-          console.warn(
-            `Permission not found for feature: ${feature.name} in module: ${moduleItem.module}. Skipping.`
-          );
-          continue; // Skip this feature if its permission definition doesn't exist
-          // return res.status(404).json({
-          //   message: `Permission definition not found for feature: ${feature.name} in module: ${moduleItem.module}`,
-          // });
-        }
-
-        // Update the permission's action flags (can_view, can_add, etc.)
-        // This updates the global permission definition.
-        // If you intend for these flags (All/None) to be role-specific,
-        // this approach needs to change (e.g. store these flags in RolePermission).
-        // Based on your current Permission model, these flags are on the Permission itself.
-        await existingPermission.update({
-          can_view: feature.permissions.view ? "All" : "None",
-          can_add: feature.permissions.add ? "All" : "None",
-          can_update: feature.permissions.edit ? "All" : "None", // Assuming 'edit' maps to 'can_update'
-          can_delete: feature.permissions.delete ? "All" : "None",
-        });
-
-        // Ensure the RolePermission link exists
-        let rolePermissionLink = await RolePermission.findOne({
-          where: {
-            role_id: roleId,
-            permission_id: existingPermission.id,
-          },
-        });
-
-        if (!rolePermissionLink) {
-          await RolePermission.create({
-            role_id: roleId,
-            permission_id: existingPermission.id,
-          });
-          console.log(
-            `Linked role ${roleId} to permission ${existingPermission.id}`
-          );
-        }
-      }
-    }
-
-    return res.json({
-      message: "Permissions updated and linked successfully.",
-    });
-  } catch (error) {
-    console.error("Save Permission Error:", error);
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.message });
-  }
-};
-
-// Get all modules with their globally defined permissions (not role-specific yet)
+// Get all modules with their globally defined default permissions
 exports.getAllModulesWithPermissions = async (req, res) => {
   try {
-    // const { gym_id } = req.query; // If you want to scope this by gym, you'd need a more complex query
-    // to see which modules have permissions linked to roles of that gym.
-    // As is, it fetches all modules and their globally defined permissions.
-
     const modules = await Module.findAll({
       include: [
         {
           model: Permission,
-          as: "permissions",
+          as: "permissions", // Alias from Module.hasMany(Permission, {as: "permissions"})
           attributes: [
             "id",
             "feature_name",
-            "can_view",
-            "can_add",
-            "can_update",
-            "can_delete",
+            "can_view", // Global default can_view
+            "can_add", // Global default can_add
+            "can_update", // Global default can_update
+            "can_delete", // Global default can_delete
           ],
         },
       ],
-      order: [["name", "ASC"]],
+      order: [
+        ["name", "ASC"],
+        [{ model: Permission, as: "permissions" }, "feature_name", "ASC"],
+      ],
     });
-
     res.status(200).json({ success: true, data: modules });
   } catch (error) {
     console.error("Error fetching modules with permissions:", error);
@@ -404,84 +376,106 @@ exports.getAllModulesWithPermissions = async (req, res) => {
   }
 };
 
-// Get permissions for a specific role, effectively scoped by the role's gym_id
+// Get permissions for a specific role, showing effective permissions (role-specific or default)
 exports.getModulesWithPermissionsByRole = async (req, res) => {
   const { roleId } = req.params;
-  const { gym_id } = req.query; // Expect gym_id for validation
+  const { gym_id } = req.query;
 
   if (!gym_id) {
     return res
       .status(400)
       .json({ success: false, message: "gym_id query parameter is required." });
   }
+  if (!roleId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "roleId path parameter is required." });
+  }
 
   try {
-    // First, validate the role belongs to the gym
-    const role = await Role.findOne({ where: { id: roleId, gym_id: gym_id } });
+    const role = await Role.findOne({
+      where: { id: roleId, gym_id: parseInt(gym_id) },
+    });
     if (!role) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Role not found for the specified roleId and gym_id.",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Role not found for the specified roleId and gym_id.",
+      });
     }
 
-    // Fetch permissions associated with this role
-    const rolePermissions = await RolePermission.findAll({
-      where: { role_id: roleId },
+    // 1. Fetch all modules and their globally defined permissions
+    const allModules = await Module.findAll({
       include: [
         {
           model: Permission,
-          as: "permission",
+          as: "permissions", // from Module model
           attributes: [
             "id",
             "feature_name",
+            "module_id",
             "can_view",
             "can_add",
             "can_update",
             "can_delete",
-            "module_id",
-          ],
-          include: [
-            {
-              model: Module,
-              as: "module",
-              attributes: ["id", "name"],
-            },
           ],
         },
       ],
+      order: [
+        ["name", "ASC"],
+        [{ model: Permission, as: "permissions" }, "feature_name", "ASC"],
+      ],
     });
 
-    // Structure the data by module
-    const structuredPermissions = {};
-    rolePermissions.forEach((rp) => {
-      if (rp.permission && rp.permission.module) {
-        const moduleName = rp.permission.module.name;
-        if (!structuredPermissions[moduleName]) {
-          structuredPermissions[moduleName] = {
-            module_id: rp.permission.module.id,
-            module_name: moduleName,
-            features: [],
-          };
-        }
-        structuredPermissions[moduleName].features.push({
-          permission_id: rp.permission.id,
-          feature_name: rp.permission.feature_name,
-          can_view: rp.permission.can_view,
-          can_add: rp.permission.can_add,
-          can_update: rp.permission.can_update,
-          can_delete: rp.permission.can_delete,
-        });
-      }
+    // 2. Fetch role-specific permission grants for this role
+    const roleSpecificGrants = await RolePermission.findAll({
+      where: { role_id: roleId },
+      attributes: [
+        "permission_id",
+        "can_view",
+        "can_add",
+        "can_update",
+        "can_delete",
+      ],
+    });
+
+    // Create a map for easy lookup of role-specific grants
+    const grantsMap = new Map();
+    roleSpecificGrants.forEach((grant) => {
+      grantsMap.set(grant.permission_id, grant);
+    });
+
+    // 3. Structure the data, merging global defaults with role-specific grants
+    const structuredPermissions = allModules.map((module) => {
+      const features = module.permissions
+        ? module.permissions.map((p) => {
+            const roleGrant = grantsMap.get(p.id);
+            return {
+              permission_id: p.id,
+              feature_name: p.feature_name,
+              // Use role-specific grant if available, otherwise use global default from Permission table
+              can_view: roleGrant ? roleGrant.can_view : p.can_view,
+              can_add: roleGrant ? roleGrant.can_add : p.can_add,
+              can_update: roleGrant ? roleGrant.can_update : p.can_update,
+              can_delete: roleGrant ? roleGrant.can_delete : p.can_delete,
+              // Indicate if the setting is from role-specific or default
+              source: roleGrant ? "role-specific" : "default",
+            };
+          })
+        : [];
+
+      return {
+        module_id: module.id,
+        module_name: module.name,
+        features: features,
+      };
     });
 
     res.status(200).json({
       success: true,
       role_id: roleId,
-      gym_id: gym_id,
-      data: Object.values(structuredPermissions), // Convert object to array
+      role_name: role.name,
+      gym_id: parseInt(gym_id),
+      data: structuredPermissions,
     });
   } catch (error) {
     console.error("Error fetching role-based permissions:", error);
@@ -496,7 +490,7 @@ exports.getModulesWithPermissionsByRole = async (req, res) => {
 // Check all permissions for a given staff member, validating against their gym
 exports.checkStaffPermissions = async (req, res) => {
   try {
-    const { staff_id, gym_id } = req.body; // Expect gym_id for validation
+    const { staff_id, gym_id } = req.body;
 
     if (!staff_id || !gym_id) {
       return res.status(400).json({
@@ -507,44 +501,123 @@ exports.checkStaffPermissions = async (req, res) => {
 
     const staff = await GymOwner.findByPk(staff_id);
     if (!staff) {
-      return res.status(404).json({
-        success: false,
-        message: "Staff not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Staff not found" });
     }
 
     const role_id = staff.role_id;
     if (!role_id) {
-      return res.status(400).json({
+      return res
+        .status(400)
+        .json({ success: false, message: "Staff has no assigned role" });
+    }
+
+    const role = await Role.findOne({
+      where: { id: role_id, gym_id: parseInt(gym_id) },
+    });
+
+    if (!role) {
+      return res.status(404).json({
         success: false,
-        message: "Staff has no assigned role",
+        message:
+          "Role not found for this staff member or role does not belong to the specified gym.",
       });
     }
 
-    // Fetch the role and validate it belongs to the provided gym_id
+    // Fetch RolePermissions which now hold the actual grant
+    const rolePermissionsDetails = await RolePermission.findAll({
+      where: { role_id: role.id },
+      include: [
+        {
+          model: Permission,
+          as: "permission", // from RolePermission model
+          include: [
+            {
+              model: Module,
+              as: "module", // from Permission model
+            },
+          ],
+        },
+      ],
+    });
+
+    const permissionsList = rolePermissionsDetails
+      .map((rp) => {
+        if (!rp.permission || !rp.permission.module) return null; // Should not happen with inner joins implied by include
+        return {
+          feature: rp.permission.feature_name,
+          module: rp.permission.module.name,
+          module_id: rp.permission.module.id,
+          permission_id: rp.permission.id,
+          actions: {
+            // Read from RolePermission itself
+            view: rp.can_view === "All",
+            add: rp.can_add === "All",
+            update: rp.can_update === "All",
+            delete: rp.can_delete === "All",
+          },
+        };
+      })
+      .filter((p) => p !== null);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        staff_id: staff.id,
+        staff_name: staff.name, // Assuming staff has a name field
+        role: role.name,
+        role_id: role.id,
+        gym_id: role.gym_id,
+        permissions: permissionsList,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking staff permissions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to check staff permissions",
+      error: error.message,
+    });
+  }
+};
+
+// Get a specific role with its permissions (using the new getModulesWithPermissionsByRole logic for consistency)
+// This function might be redundant if getModulesWithPermissionsByRole is comprehensive enough
+// For now, it shows how to get RolePermission details.
+exports.getRoleWithPermissions = async (req, res) => {
+  try {
+    const role_id = req.params.id;
+    const { gym_id } = req.query;
+    console.log("Get Role With Permissions Request:", role_id, gym_id);
+    if (!gym_id) {
+      return res
+        .status(400)
+        .json({ error: "gym_id query parameter is required." });
+    }
+
     const role = await Role.findOne({
-      where: { id: role_id, gym_id: gym_id }, // Key validation here
+      where: { id: role_id, gym_id: gym_id },
       include: [
         {
           model: RolePermission,
-          as: "rolePermissions",
+          as: "rolePermissions", // Alias from Role model
+          attributes: [
+            "permission_id",
+            "can_view",
+            "can_add",
+            "can_update",
+            "can_delete",
+          ], // Get grants from RolePermission
           include: [
             {
               model: Permission,
-              as: "permission",
-              attributes: [
-                "id",
-                "feature_name",
-                "can_view",
-                "can_add",
-                "can_update",
-                "can_delete",
-                "module_id",
-              ],
+              as: "permission", // Alias from RolePermission model
+              attributes: ["id", "feature_name", "module_id"], // Get basic info from Permission
               include: [
                 {
                   model: Module,
-                  as: "module",
+                  as: "module", // Alias from Permission model
                   attributes: ["id", "name"],
                 },
               ],
@@ -556,43 +629,38 @@ exports.checkStaffPermissions = async (req, res) => {
 
     if (!role) {
       return res.status(404).json({
-        success: false,
-        message:
-          "Role not found for this staff member or role does not belong to the specified gym.",
+        error: "Role not found for the specified role_id and gym_id.",
       });
     }
 
-    const permissions = role.rolePermissions.map((rp) => ({
-      feature: rp.permission.feature_name,
-      module: rp.permission.module.name,
-      module_id: rp.permission.module.id,
-      permission_id: rp.permission.id,
-      actions: {
-        // Changed from 'permissions' to 'actions' to avoid confusion
-        view: rp.permission.can_view === "All",
-        add: rp.permission.can_add === "All",
-        update: rp.permission.can_update === "All",
-        delete: rp.permission.can_delete === "All",
-      },
-    }));
+    // Transform data if needed
+    const transformedRole = {
+      id: role.id,
+      name: role.name,
+      gym_id: role.gym_id,
+      staff_id: role.staff_id,
+      permissions: role.rolePermissions
+        .map((rp) => {
+          if (!rp.permission || !rp.permission.module) return null;
+          return {
+            moduleId: rp.permission.module.id,
+            moduleName: rp.permission.module.name,
+            permissionId: rp.permission.id,
+            featureName: rp.permission.feature_name,
+            canView: rp.can_view,
+            canAdd: rp.can_add,
+            canUpdate: rp.can_update,
+            canDelete: rp.can_delete,
+          };
+        })
+        .filter((p) => p),
+    };
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        staff_id: staff.id,
-        staff_name: staff.name, // Assuming staff has a name field
-        role: role.name,
-        role_id: role.id,
-        gym_id: role.gym_id,
-        permissions,
-      },
-    });
-  } catch (error) {
-    console.error("Error checking staff permissions:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to check staff permissions",
-      error: error.message,
-    });
+    res
+      .status(200)
+      .json({ message: "Role details found!", role: transformedRole });
+  } catch (err) {
+    console.error("Get Role With Permissions Error:", err);
+    res.status(500).json({ error: err.message });
   }
 };

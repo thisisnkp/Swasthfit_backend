@@ -1,27 +1,30 @@
+// ../role/models/Permission.js
 "use strict";
 const { Model, DataTypes } = require("sequelize");
-const sequelize = require("../../../../sequelize");
-const Module = require("./Modules");
+const sequelize = require("../../../../sequelize"); // Adjust path if needed
+
 class Permission extends Model {
   static associate(models) {
-    // Permission.belongsTo(models.Module, { // ✅ FIXED
-    //   foreignKey: 'module_id',
-    //   as: 'module',
-    // });
-    // Permission.hasMany(models.RolePermission, {
-    //   foreignKey: 'permission_id',
-    //   as: 'rolePermissions',
-    // });
+    // Define the other side of the association
+    Permission.belongsTo(models.Module, {
+      foreignKey: "module_id",
+      as: "module", // This alias can be used when querying from Permission to get Module
+    });
+
+    // Assuming RolePermission association is also needed:
+    Permission.hasMany(models.RolePermission, {
+      foreignKey: "permission_id",
+      as: "rolePermissions",
+    });
   }
 }
 
 Permission.init(
   {
     feature_name: {
-      type: DataTypes.JSON,
+      type: DataTypes.STRING, // Assuming you've adopted the STRING change from previous advice
       allowNull: false,
     },
-
     can_view: {
       type: DataTypes.ENUM("None", "All"),
       defaultValue: "None",
@@ -41,6 +44,11 @@ Permission.init(
     module_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      // Optional: Add foreign key constraint (ensure 'gym_modules' is correct table name)
+      // references: {
+      //   model: 'gym_modules',
+      //   key: 'id',
+      // },
     },
   },
   {

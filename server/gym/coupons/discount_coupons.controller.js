@@ -4,8 +4,9 @@ const sequelize = require("../../../sequelize");
 const { Sequelize, Op } = require("sequelize"); // Assuming you might need Op, Sequelize is for sequelize.fn/col
 
 exports.createCoupon = async (req, res) => {
-  console.log("coupon");
+  console.log("coupon request body:", req.body); // Log the entire body to see what's coming
   try {
+    // Assuming vendor_id and module_type are correctly set in req.user by your auth middleware
     const { vendor_id, module_type } = req.user;
 
     const {
@@ -15,41 +16,89 @@ exports.createCoupon = async (req, res) => {
       discount,
       valid_from,
       valid_to,
-      apply_quantity,
+      apply_quantity, // This will be undefined if apply_quantity_type is 'unlimited' as per frontend logic
       apply_quantity_type,
       status,
+      gym_id, // Destructure gym_id from the request body
     } = req.body;
-
+    console.log("Destructured values:", req.body.gym_id);
     // Validate required fields
-    if (!code || !discount_type || !discount) {
+    // Add gym_id to your validation if it's a mandatory field for creating a coupon
+    if (!code || !discount_type || !discount || !gym_id) {
+      // Added gym_id to validation
+      let missingFields = [];
+      if (!code) missingFields.push("code");
+      if (!discount_type) missingFields.push("discount_type");
+      if (!discount) missingFields.push("discount");
+      if (!gym_id) missingFields.push("gym_id"); // Note missing gym_id
+
       return res.status(400).json({
-        errors: [{ code: "REQ001", message: "Missing required fields" }],
+        success: false, // It's good practice to include a success flag
+        errors: [
+          {
+            code: "REQ001",
+            message: `Missing required fields: ${missingFields.join(", ")}`,
+          },
+        ],
       });
     }
 
-    // Create a new coupon
-    const newCoupon = await Coupon.create({
+    // Prepare data for coupon creation
+    const couponData = {
       name,
       code,
-      vendor_id,
-      module_type,
+      vendor_id, // From authenticated user
+      module_type, // From authenticated user
+      gym_id, // From request body
       discount_type,
       discount,
-      valid_from,
-      valid_to,
-      apply_quantity,
+      valid_from: valid_from || null, // Handle cases where dates might not be provided or are empty strings
+      valid_to: valid_to || null,
       apply_quantity_type,
       status,
-    });
+    };
+
+    // Only add apply_quantity if it's relevant (i.e., not 'unlimited') and provided
+    if (apply_quantity_type === "limited" && apply_quantity !== undefined) {
+      couponData.apply_quantity = apply_quantity;
+    } else if (apply_quantity_type === "unlimited") {
+      couponData.apply_quantity = null; // Or however your DB schema handles unlimited (e.g., NULL, 0, or a specific value)
+      // Ensure your Coupon model/schema can handle null for apply_quantity if type is unlimited
+    }
+    console.log("Coupon data to be created:", couponData); // Log the final data to be inserted
+    // Create a new coupon
+    const newCoupon = await Coupon.create(couponData);
 
     return res.status(201).json({
+      success: true, // Add success flag
       message: "Coupon created successfully",
       data: newCoupon,
     });
   } catch (error) {
     console.error("Error creating coupon:", error);
+
+    // Handle specific database errors, like unique constraint violations (e.g., for coupon code)
+    if (
+      error.name === "SequelizeUniqueConstraintError" ||
+      error.code === "ER_DUP_ENTRY" ||
+      error.errno === 1062
+    ) {
+      // Adjust based on your ORM/DB
+      return res.status(409).json({
+        // 409 Conflict
+        success: false,
+        errors: [{ code: "DUP_ENTRY", message: "Coupon code already exists." }],
+      });
+    }
+
     return res.status(500).json({
-      errors: [{ code: "SERVER_ERROR", message: error.message }],
+      success: false,
+      errors: [
+        {
+          code: "SERVER_ERROR",
+          message: error.message || "An internal server error occurred",
+        },
+      ],
     });
   }
 };

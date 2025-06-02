@@ -1,12 +1,14 @@
+// ../role/models/Modules.js
 "use strict";
 const { Model, DataTypes } = require("sequelize");
-const sequelize = require("../../../../sequelize");
-const Permission = require("./Permission");
+const sequelize = require("../../../../sequelize"); // Adjust path if needed
+
 class Module extends Model {
   static associate(models) {
+    // Define the association that your controller is trying to use
     Module.hasMany(models.Permission, {
       foreignKey: "module_id",
-      as: "permissions",
+      as: "permissions", // This 'as' must match the one in your controller's include
     });
   }
 }
@@ -16,6 +18,7 @@ Module.init(
     name: {
       type: DataTypes.STRING(100),
       allowNull: false,
+      unique: true,
     },
   },
   {
@@ -25,12 +28,5 @@ Module.init(
     timestamps: false,
   }
 );
-Module.hasMany(Permission, {
-  foreignKey: "module_id",
-  as: "permissions",
-});
-Permission.belongsTo(Module, {
-  foreignKey: "module_id",
-  as: "module",
-});
+
 module.exports = Module;

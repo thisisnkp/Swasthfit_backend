@@ -49,17 +49,18 @@ exports.createMembershipPlan = async (req, res) => {
       features,
       price,
       status,
+      gym_id,
       description,
       membership_type,
       duration,
+      is_listed_on_app,
+      is_comm_paid_by_vendor,
     } = req.body;
 
-    // Extract user_role and gym_id from req.user
-    const { user_role: created_by, gym_id } = req.user;
+    const { user_role: created_by } = req.user;
     console.log("user_role", created_by);
     console.log("gym_id", gym_id);
 
-    // Validate required fields robustly
     const requiredFields = { name, type, features, price, status };
     for (const [key, value] of Object.entries(requiredFields)) {
       if (value === undefined || value === null || value === "") {
@@ -71,7 +72,6 @@ exports.createMembershipPlan = async (req, res) => {
       }
     }
 
-    // Optional enum validations for safety
     const validCreatedBy = ["owner", "admin", "staff"];
     const validNames = ["silver", "gold", "platinum"];
     const validStatuses = ["active", "inactive"];
@@ -94,7 +94,6 @@ exports.createMembershipPlan = async (req, res) => {
       });
     }
 
-    // Create the membership plan
     const membershipPlan = await MembershipPlan.create({
       created_by,
       gym_id,
@@ -106,6 +105,8 @@ exports.createMembershipPlan = async (req, res) => {
       description,
       membership_type,
       duration,
+      is_listed_on_app,
+      is_comm_paid_by_vendor,
     });
 
     return res.status(201).json({
@@ -131,7 +132,8 @@ exports.updateMembershipPlan = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { created_by, gym_id } = req.body;
+    const { created_by, gym_id, is_listed_on_app, is_comm_paid_by_vendor } =
+      req.body;
 
     const membershipPlan = await MembershipPlan.findByPk(id);
     if (!membershipPlan) {
@@ -140,12 +142,13 @@ exports.updateMembershipPlan = async (req, res) => {
       });
     }
 
-    // Ensure gym_id is updated only if created_by is 'Gym', otherwise set it to null
     const finalGymId = created_by === "Gym" ? gym_id : null;
 
     await membershipPlan.update({
       ...req.body,
       gym_id: finalGymId,
+      is_listed_on_app,
+      is_comm_paid_by_vendor,
     });
 
     return res.status(200).json({
@@ -165,28 +168,19 @@ exports.getMembershipPlansByGym = async (req, res) => {
   console.log("Fetching membership plans for gym");
   console.log("req.user", req.user);
 
-  // const validation = validateApiKey(req);
-  // if (validation.error) {
-  //   return res.status(validation.error.status).json(validation.error.response);
-  // }
-
   try {
-    // Extract gym_id from req.user
     const gym_id = 4;
 
-    // Validate gym_id
     if (!gym_id) {
       return res.status(400).json({
         errors: [{ code: "REQ001", message: "Missing gym_id in user data" }],
       });
     }
 
-    // Fetch membership plans for the gym
     const membershipPlans = await MembershipPlan.findAll({
       where: { gym_id },
     });
 
-    // Check if any membership plans exist
     if (!membershipPlans || membershipPlans.length === 0) {
       return res.status(404).json({
         errors: [

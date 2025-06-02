@@ -17,7 +17,6 @@ exports.createAdminKYC = async (req, res) => {
     }
 
     const kycData = req.body;
-    // Include gym_id from request body if provided
     if (req.body.gym_id) {
       kycData.gym_id = req.body.gym_id;
     }

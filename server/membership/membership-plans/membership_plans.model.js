@@ -49,6 +49,16 @@ const MembershipPlan = sequelize.define(
       type: DataTypes.ENUM("active", "inactive"),
       allowNull: false,
     },
+    is_listed_on_app: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    is_comm_paid_by_vendor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
     created_at: {
       type: DataTypes.DATE,
       allowNull: false,

@@ -99,7 +99,7 @@ router.post("/role", createRole);
 router.post("/module", createModule);
 router.post("/createPermission", createPermission);
 router.post("/assign-role", assignPermissionToRole);
-router.get("/roles/:role_id", getRoleWithPermissions);
+router.get("/roles/:id", getRoleWithPermissions);
 router.get("/modules", getModules);
 router.get("/roles", getRoles);
 router.post("/save", savePermissions);
@@ -188,5 +188,11 @@ router.put("/basic-info/:id", updateGymBasicInfo);
 router.get("/basic-info/:id", getGymBasicInfo);
 router.put("/location/:id", updateGymLocationDetails);
 router.post("/gym-schedule", createOrUpdateGymSchedule);
+
+// get accounts transactions by gym id
+const {
+  getVendorTransactionsByGymId,
+} = require("./controllers/accounts/getTransactions.controller");
+router.get("/transactions/:id", getVendorTransactionsByGymId);
 
 module.exports = router;
