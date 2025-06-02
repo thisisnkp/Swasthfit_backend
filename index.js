@@ -11,10 +11,26 @@ require('dotenv').config();
 const app = express();
 
 // Enable CORS for your React app
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://46.202.167.228:3011",
+  "https://46.202.167.228:3014",
+];
+
 const corsOptions = {
-  origin: "http://localhost:5173", // Adjust based on your React app's URL
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
+// const corsOptions = {
+//   origin: "http://localhost:5173", // Adjust based on your React app's URL
+//   credentials: true,
+// };
 
 app.use(cors(corsOptions));  // Applying CORS middleware
 
@@ -41,7 +57,13 @@ const server = http.createServer(app);
 // Initialize socket.io
 const io = socketIo(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   }
