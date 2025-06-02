@@ -19,7 +19,7 @@ Invoice.init({
   },
   due_date: {
     type: DataTypes.DATE,
-    allowNull: false
+  
   },
   amount: {
     type: DataTypes.DECIMAL(10, 2),

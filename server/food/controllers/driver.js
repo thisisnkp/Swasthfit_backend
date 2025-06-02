@@ -10,7 +10,7 @@ const createOrUpdate = async (req, res) => {
 
 }
 
-// rider current location 
+
 
 const getRiderCurrentLocation = async (req, res) => {
   try {

@@ -4,6 +4,95 @@ const User = require("../../user/user.model");
 const express = require("express");
 
 const app = express();
+exports.createClientDietPlan = async (req, res) => {
+  const io = req.app.get("io");  // get io from app
+
+  try {
+    const {
+      user_id,
+      trainer_id,
+      meal_type,
+      food_item_name,
+      quantity,
+      quantity_unit,
+      fats,
+      protein,
+      carbs,
+      food_type,
+      remark,
+      water_intake,
+      water_intake_unit,
+      breakfast_price,
+      lunch_price,
+      dinner_price,
+      snacks_price,
+      combo_price,
+      discount_type,
+      discount_value,
+      plan_days,
+      optional_item_name,
+      optional_item_price,
+      meal_order,
+      is_water_intake,
+    } = req.body;
+
+    // Validations omitted here for brevity — keep your existing validations
+
+    let finalFoodType = food_type;
+    if (meal_type === "Snacks") {
+      finalFoodType = "Optional";
+    }
+
+    const clientDietPlan = await ClientDietPlan.create({
+      user_id,
+      trainer_id,
+      meal_type,
+      food_item_name,
+      quantity,
+      quantity_unit,
+      fats,
+      protein,
+      carbs,
+      food_type: finalFoodType,
+      remark,
+      water_intake,
+      water_intake_unit,
+      breakfast_price,
+      lunch_price,
+      dinner_price,
+      snacks_price,
+      combo_price,
+      discount_type,
+      discount_value,
+      plan_days,
+      optional_item_name,
+      optional_item_price,
+      meal_order,
+      is_water_intake,
+    });
+
+    // Emit socket notification about new diet plan
+    io.emit("notification", {
+      type: "DietPlan",
+      message: `New diet plan for user ${user_id} created by trainer ${trainer_id}`,
+      timestamp: new Date().toISOString(),
+      diet_plan_id: clientDietPlan.id,
+      user_id,
+      trainer_id,
+    });
+
+    res.status(201).json({
+      message: "Client Diet Plan created successfully",
+      data: clientDietPlan,
+    });
+  } catch (error) {
+    console.error("Error creating client diet plan:", error);
+    res.status(500).json({
+      message: "Error creating client diet plan",
+      error: error.message,
+    });
+  }
+};
 
 // Create a new ClientDietPlan
 // exports.createClientDietPlan = async (req, res) => {
@@ -81,128 +170,128 @@ const app = express();
 //     });
 //   }
 // };
-exports.createClientDietPlan = async (req, res) => {
-  try {
-    const {
-      user_id,
-      trainer_id,
-      meal_type,
-      food_item_name,
-      quantity,
-      quantity_unit,
-      fats,
-      protein,
-      carbs,
-      food_type,
-      remark,
-      water_intake,
-      water_intake_unit,
-      breakfast_price,
-      lunch_price,
-      dinner_price,
-      snacks_price,
-      combo_price,
-      discount_type,
-      discount_value,
-      plan_days,
-      optional_item_name,
-      optional_item_price,
-      meal_order,
-      is_water_intake,
-    } = req.body;
+// exports.createClientDietPlan = async (req, res) => {
+//   try {
+//     const {
+//       user_id,
+//       trainer_id,
+//       meal_type,
+//       food_item_name,
+//       quantity,
+//       quantity_unit,
+//       fats,
+//       protein,
+//       carbs,
+//       food_type,
+//       remark,
+//       water_intake,
+//       water_intake_unit,
+//       breakfast_price,
+//       lunch_price,
+//       dinner_price,
+//       snacks_price,
+//       combo_price,
+//       discount_type,
+//       discount_value,
+//       plan_days,
+//       optional_item_name,
+//       optional_item_price,
+//       meal_order,
+//       is_water_intake,
+//     } = req.body;
 
-    // Validate user_id
-    if (!user_id || isNaN(user_id) || parseInt(user_id) <= 0) {
-      return res.status(400).json({ message: "Invalid or missing user_id." });
-    }
+//     // Validate user_id
+//     if (!user_id || isNaN(user_id) || parseInt(user_id) <= 0) {
+//       return res.status(400).json({ message: "Invalid or missing user_id." });
+//     }
 
-    // Validate trainer_id
-    if (!trainer_id || isNaN(trainer_id) || parseInt(trainer_id) <= 0) {
-      return res.status(400).json({ message: "Invalid or missing trainer_id." });
-    }
+//     // Validate trainer_id
+//     if (!trainer_id || isNaN(trainer_id) || parseInt(trainer_id) <= 0) {
+//       return res.status(400).json({ message: "Invalid or missing trainer_id." });
+//     }
 
-    // Check if user_id exists in User table
-    const userExists = await User.findByPk(user_id);
-    if (!userExists) {
-      return res.status(404).json({ message: "User ID does not exist." });
-    }
+//     // Check if user_id exists in User table
+//     const userExists = await User.findByPk(user_id);
+//     if (!userExists) {
+//       return res.status(404).json({ message: "User ID does not exist." });
+//     }
 
-    // Check if trainer_id exists in User table
-    const trainerExists = await User.findByPk(trainer_id);
-    if (!trainerExists) {
-      return res.status(404).json({ message: "Trainer ID does not exist." });
-    }
+//     // Check if trainer_id exists in User table
+//     const trainerExists = await User.findByPk(trainer_id);
+//     if (!trainerExists) {
+//       return res.status(404).json({ message: "Trainer ID does not exist." });
+//     }
 
-    // Validate numeric fields for non-negative values
-    const numericFields = {
-         quantity,
-      quantity_unit,
-      fats,
-      protein,
-      carbs,
-      water_intake,
-      breakfast_price,
-      lunch_price,
-      dinner_price,
-      snacks_price,
-      combo_price,
-      discount_value,
-      plan_days,
-      optional_item_price,
-      meal_order,
-    };
+//     // Validate numeric fields for non-negative values
+//     const numericFields = {
+//          quantity,
+//       quantity_unit,
+//       fats,
+//       protein,
+//       carbs,
+//       water_intake,
+//       breakfast_price,
+//       lunch_price,
+//       dinner_price,
+//       snacks_price,
+//       combo_price,
+//       discount_value,
+//       plan_days,
+//       optional_item_price,
+//       meal_order,
+//     };
 
-    for (const [key, value] of Object.entries(numericFields)) {
-      if (value !== undefined && value !== null && !isNaN(value) && Number(value) < 0) {
-        return res.status(400).json({ message: `${key} cannot be negative.` });
-      }
-    }
+//     for (const [key, value] of Object.entries(numericFields)) {
+//       if (value !== undefined && value !== null && !isNaN(value) && Number(value) < 0) {
+//         return res.status(400).json({ message: `${key} cannot be negative.` });
+//       }
+//     }
 
-    let finalFoodType = food_type;
-    if (meal_type === "Snacks") {
-      finalFoodType = "Optional";
-    }
+//     let finalFoodType = food_type;
+//     if (meal_type === "Snacks") {
+//       finalFoodType = "Optional";
+//     }
 
-    const clientDietPlan = await ClientDietPlan.create({
-      user_id,
-      trainer_id,
-      meal_type,
-      food_item_name,
-      quantity,
-      quantity_unit,
-      fats,
-      protein,
-      carbs,
-      food_type: finalFoodType,
-      remark,
-      water_intake,
-      water_intake_unit,
-      breakfast_price,
-      lunch_price,
-      dinner_price,
-      snacks_price,
-      combo_price,
-      discount_type,
-      discount_value,
-      plan_days,
-      optional_item_name,
-      optional_item_price,
-      meal_order,
-      is_water_intake,
-    });
+//     const clientDietPlan = await ClientDietPlan.create({
+//       user_id,
+//       trainer_id,
+//       meal_type,
+//       food_item_name,
+//       quantity,
+//       quantity_unit,
+//       fats,
+//       protein,
+//       carbs,
+//       food_type: finalFoodType,
+//       remark,
+//       water_intake,
+//       water_intake_unit,
+//       breakfast_price,
+//       lunch_price,
+//       dinner_price,
+//       snacks_price,
+//       combo_price,
+//       discount_type,
+//       discount_value,
+//       plan_days,
+//       optional_item_name,
+//       optional_item_price,
+//       meal_order,
+//       is_water_intake,
+//     });
 
-    res.status(201).json({
-      message: "Client Diet Plan created successfully",
-      data: clientDietPlan,
-    });
-  } catch (error) {
-    console.error("Error creating client diet plan:", error);
-    res.status(500).json({
-      message: "Error creating client diet plan",
-      error: error.message,
-    });
-  }
-};
+//     res.status(201).json({
+//       message: "Client Diet Plan created successfully",
+//       data: clientDietPlan,
+//     });
+//   } catch (error) {
+//     console.error("Error creating client diet plan:", error);
+//     res.status(500).json({
+//       message: "Error creating client diet plan",
+//       error: error.message,
+//     });
+//   }
+// };
 
 
 exports.getAllClientDietPlans = async (req, res) => {

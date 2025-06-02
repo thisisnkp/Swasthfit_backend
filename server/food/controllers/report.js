@@ -67,6 +67,38 @@ exports.getStockReportById = async (req, res) => {
 };
 
 // 🔥 Create New Stock Report
+// exports.createStockReport = async (req, res) => {
+//   try {
+//     const {
+//       item_name,
+//       category,
+//       quantity_in_stock,
+//       reorder_level,
+//       supplier,
+//       last_restocked_date
+//     } = req.body;
+
+//     // Validation (optional)
+//     if (!item_name || !category || !quantity_in_stock || !reorder_level || !supplier || !last_restocked_date) {
+//       return res.status(400).json({ error: 'All fields are required' });
+//     }
+
+//     const newReport = await RestaurantStockReport.create({
+//       item_name,
+//       category,
+//       quantity_in_stock,
+//       reorder_level,
+//       supplier,
+//       last_restocked_date
+//     });
+// console.log(newReport);
+
+//     res.status(201).json(newReport);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Failed to create stock report' });
+//   }
+// };
 exports.createStockReport = async (req, res) => {
   try {
     const {
@@ -78,8 +110,15 @@ exports.createStockReport = async (req, res) => {
       last_restocked_date
     } = req.body;
 
-    // Validation (optional)
-    if (!item_name || !category || !quantity_in_stock || !reorder_level || !supplier || !last_restocked_date) {
+    // Validation
+    if (
+      !item_name ||
+      !category ||
+      quantity_in_stock == null ||
+      reorder_level == null ||
+      !supplier ||
+      !last_restocked_date
+    ) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -91,7 +130,17 @@ exports.createStockReport = async (req, res) => {
       supplier,
       last_restocked_date
     });
-console.log(newReport);
+
+    // Emit socket notification
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("notification", {
+        type: "Stock Report",
+        message: `Stock report created for ${item_name} (Qty: ${quantity_in_stock})`,
+        report_id: newReport.id,
+        timestamp: new Date(),
+      });
+    }
 
     res.status(201).json(newReport);
   } catch (error) {

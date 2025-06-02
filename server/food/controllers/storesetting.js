@@ -215,8 +215,7 @@ exports.updateSettingsByRestaurantId = async (req, res) => {
     const { restaurantId } = req.params;
     const data = req.body;
 
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.files);
+ 
 
     // Fetch existing settings
     const settings = await RestaurantSettings.findOne({

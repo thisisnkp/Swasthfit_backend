@@ -139,6 +139,8 @@ router
   
 /******************** Rest Section End *********************/
 /***************** store setting Section Route Start *****************/
+
+
 router.route("/store-setting-create")
   .post(verifyToken, storeSettingController.createSettings)
 
@@ -308,7 +310,7 @@ router
   .delete(verifyToken, orderController.deleteOrder);
   router.route("/order/user/all-order").get(verifyToken , orderController.getAllUsersWithOrders);
 
-
+router.route("/order-details/:orderId").get(verifyToken, orderController.getOrderDetails);
 /***************** Order Section Route End *****************/
 /***************** Home Section Route Start *****************/
 

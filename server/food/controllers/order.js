@@ -8,72 +8,167 @@ const UserAddress = require("../models/UserAddress");
 const jwt = require("jsonwebtoken");
 const FavoriteItem = require("../models/favoriteItem");
 const FavoriteRestaurant = require("../models/favoriteRestaurant");
-
+const Rider = require("../models/rider");
 const ItemOfferSpecial = require("../models/ItemOffer");
-const User = require("../models/User")
+const User = require("../models/User");
 const Sequelize = require("sequelize");
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
+const FoodOrders = require("../models/foodOrder");
 const moment = require("moment"); // Easy date calculations
-
 exports.generateOrderId = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
-// create orders 
+// create orders
+// exports.createorder = async (req, res) => {
+//   try {
+//     const {
+//       order_id,
+//       restaurant_id,
+//       user_id,
+//       address_details,
+//       item_details,
+//       total_amount,
+//       status,
+//       Payment_via, // New field added here
+//     } = req.body;
+
+//     // 🔍 Validate required fields
+//     if (
+//       !restaurant_id ||
+//       !user_id ||
+//       !address_details ||
+//       !item_details ||
+//       !total_amount ||
+//       !Payment_via
+//     ) {
+//       return res.status(400).json({
+//         status: false,
+//         message:
+//           "restaurant_id, user_id, address_details, item_details, total_amount, and Payment_via are required",
+//       });
+//     }
+
+//     // ✅ Check if restaurant exists
+//     const restaurant = await Restaurant.findByPk(restaurant_id);
+//     if (!restaurant) {
+//       return res
+//         .status(404)
+//         .json({ status: false, message: "Restaurant not found" });
+//     }
+
+//     // ✅ Check if user exists
+//     const user = await User.findByPk(user_id);
+//     if (!user) {
+//       return res.status(404).json({ status: false, message: "User not found" });
+//     }
+
+//     // 🆔 Generate order_id if not provided
+//     const generatedOrderId =
+//       order_id || `ORD-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+//     // 📝 Create the order
+//     const newOrder = await Order.create({
+//       // <-- Use correct model name
+//       order_id: generatedOrderId,
+//       restaurant_id,
+//       user_id,
+//       address_details: JSON.stringify(address_details),
+//       item_details: JSON.stringify(item_details),
+//       total_amount,
+//       Payment_via,
+//       status: status || "Pending",
+//     });
+
+//     return res.status(201).json({
+//       status: true,
+//       message: "Order created successfully",
+//       data: newOrder,
+//     });
+//   } catch (error) {
+//     console.error("Error creating order:", error);
+//     return res.status(500).json({
+//       status: false,
+//       message: "Failed to create order",
+//       error: error.message,
+//     });
+//   }
+// };
+
 exports.createorder = async (req, res) => {
+  const io = req.app.get("io");
   try {
     const {
       order_id,
       restaurant_id,
       user_id,
+      rider_id,
       address_details,
       item_details,
       total_amount,
       status,
-      Payment_via, // New field added here
+      Payment_via,
     } = req.body;
 
-    // 🔍 Validate required fields
-    if (!restaurant_id || !user_id || !address_details || !item_details || !total_amount || !Payment_via) {
+    if (
+      !restaurant_id ||
+      !user_id ||
+      !address_details ||
+      !item_details ||
+      !total_amount ||
+      !Payment_via
+    ) {
       return res.status(400).json({
         status: false,
-        message: "restaurant_id, user_id, address_details, item_details, total_amount, and Payment_via are required",
+        message:
+          "restaurant_id, user_id, address_details, item_details, total_amount, and Payment_via are required",
       });
     }
 
-    // ✅ Check if restaurant exists
     const restaurant = await Restaurant.findByPk(restaurant_id);
     if (!restaurant) {
-      return res.status(404).json({ status: false, message: "Restaurant not found" });
+      return res
+        .status(404)
+        .json({ status: false, message: "Restaurant not found" });
     }
 
-    // ✅ Check if user exists
     const user = await User.findByPk(user_id);
     if (!user) {
       return res.status(404).json({ status: false, message: "User not found" });
     }
 
-    // 🆔 Generate order_id if not provided
-    const generatedOrderId = order_id || `ORD-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    if (rider_id) {
+      const rider = await Rider.findByPk(rider_id);
+      if (!rider) {
+        return res
+          .status(404)
+          .json({ status: false, message: "Rider not found" });
+      }
+    }
 
-    // 📝 Create the order
-    const newOrder = await Order.create({  // <-- Use correct model name
+    const generatedOrderId =
+      order_id || `ORD-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+    const newOrder = await FoodOrders.create({
       order_id: generatedOrderId,
       restaurant_id,
       user_id,
+      rider_id: rider_id || null, // assign rider_id or null
       address_details: JSON.stringify(address_details),
       item_details: JSON.stringify(item_details),
       total_amount,
       Payment_via,
-      status: status || 'Pending',
+      status: status || "Pending",
     });
-    
-
+    io.emit("notification", {
+      type: "Order",
+      message: `New order (${newOrder.order_id}) placed by User ${user_id}`,
+      timestamp: new Date().toISOString(),
+    });
     return res.status(201).json({
       status: true,
       message: "Order created successfully",
       data: newOrder,
     });
-
   } catch (error) {
     console.error("Error creating order:", error);
     return res.status(500).json({
@@ -83,8 +178,7 @@ exports.createorder = async (req, res) => {
     });
   }
 };
-
-// get all orders 
+// get all orders
 exports.getAllOrders = async (req, res) => {
   try {
     const { order_id, status } = req.body;
@@ -128,7 +222,7 @@ exports.getAllOrders = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-// fetch order status by order id 
+// fetch order status by order id
 exports.getOrderStatus = async (req, res) => {
   try {
     const { order_id } = req.params;
@@ -142,7 +236,7 @@ exports.getOrderStatus = async (req, res) => {
 
     const order = await Order.findOne({
       where: { order_id },
-      attributes: ['order_id', 'status'], // Only return what's needed
+      attributes: ["order_id", "status"], // Only return what's needed
     });
 
     if (!order) {
@@ -157,7 +251,6 @@ exports.getOrderStatus = async (req, res) => {
       message: "Order status fetched successfully",
       data: order,
     });
-
   } catch (error) {
     console.error("Error fetching order status:", error);
     res.status(500).json({
@@ -207,7 +300,7 @@ exports.updateOrderStatus = async (req, res) => {
     });
   }
 };
-// cancelled order  
+// cancelled order
 exports.cancelOrder = async (req, res) => {
   try {
     const { order_id } = req.body;
@@ -275,7 +368,7 @@ exports.getOrdersBetweenDates = async (req, res) => {
           [Op.between]: [new Date(start_date), new Date(end_date)],
         },
       },
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     return res.status(200).json({
@@ -284,7 +377,6 @@ exports.getOrdersBetweenDates = async (req, res) => {
       total_orders: orders.length,
       data: orders,
     });
-
   } catch (error) {
     console.error("Error fetching orders:", error);
     return res.status(500).json({
@@ -297,30 +389,30 @@ exports.getOrdersBetweenDates = async (req, res) => {
 
 // deleteOrder controller
 exports.deleteOrder = async (req, res) => {
-    const { orderId } = req.params; // Get order_id from request parameters
+  const { orderId } = req.params; // Get order_id from request parameters
 
-    try {
-        // Find the order by order_id
-        const order = await Order.findOne({
-            where: { order_id: orderId }
-        });
+  try {
+    // Find the order by order_id
+    const order = await Order.findOne({
+      where: { order_id: orderId },
+    });
 
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        // Delete the order
-        await order.destroy();
-
-        // Send success response
-        res.status(200).json({ message: 'Order deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
     }
+
+    // Delete the order
+    await order.destroy();
+
+    // Send success response
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 };
 
-// search order by range 
+// search order by range
 // exports.getOrdersByRange = async (req, res) => {
 //   try {
 //     const { range } = req.body;
@@ -401,7 +493,7 @@ exports.getOrdersByRange = async (req, res) => {
           [Op.between]: [startDate.toDate(), endDate.toDate()],
         },
       },
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     // Count order statuses
@@ -411,7 +503,7 @@ exports.getOrdersByRange = async (req, res) => {
       rejected: 0,
     };
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       if (order.status === "Pending") counts.pending += 1;
       else if (order.status === "Accepted") counts.accepted += 1;
       else if (order.status === "Rejected") counts.rejected += 1;
@@ -430,37 +522,41 @@ exports.getOrdersByRange = async (req, res) => {
 
 exports.getOrdersByDateRange = async (req, res) => {
   const { dateRange } = req.body; // Get the selected date range from query parameter
-  
+
   // Define date boundaries for different options
   let startDate, endDate;
   const today = new Date();
-  const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay())); // Get the first day of the week
-  const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6)); // Get the last day of the week
-  
-  switch(dateRange) {
-    case 'today':
+  const firstDayOfWeek = new Date(
+    today.setDate(today.getDate() - today.getDay()),
+  ); // Get the first day of the week
+  const lastDayOfWeek = new Date(
+    today.setDate(today.getDate() - today.getDay() + 6),
+  ); // Get the last day of the week
+
+  switch (dateRange) {
+    case "today":
       startDate = new Date();
       endDate = new Date(today.setHours(23, 59, 59, 999)); // End of today
       break;
-    case 'this_week':
+    case "this_week":
       startDate = firstDayOfWeek;
       endDate = lastDayOfWeek;
       break;
-    case 'last_week':
+    case "last_week":
       // Get the last week's start and end date
       startDate = new Date(today.setDate(today.getDate() - today.getDay() - 7)); // Last week's first day
       endDate = new Date(today.setDate(today.getDate() - today.getDay() - 1)); // Last week's last day
       break;
-    case 'this_month':
+    case "this_month":
       startDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of this month
       endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of this month
       break;
-    case 'last_month':
+    case "last_month":
       startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); // First day of last month
       endDate = new Date(today.getFullYear(), today.getMonth(), 0); // Last day of last month
       break;
     default:
-      return res.status(400).json({ error: 'Invalid date range selected' });
+      return res.status(400).json({ error: "Invalid date range selected" });
   }
 
   try {
@@ -472,20 +568,19 @@ exports.getOrdersByDateRange = async (req, res) => {
           [Op.lte]: endDate,
         },
       },
-      order: [['createdAt', 'DESC']],
-      raw: true,  // ✅ This returns plain objects instead of Sequelize instances
+      order: [["createdAt", "DESC"]],
+      raw: true, // ✅ This returns plain objects instead of Sequelize instances
     });
-    
-console.log("order :" , orders);
+
+    console.log("order :", orders);
 
     return res.json(orders); // Send the orders as a response
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-/////
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { order_id, status } = req.body;
@@ -494,15 +589,15 @@ exports.updateOrderStatus = async (req, res) => {
     if (!order_id || !status) {
       return res.status(400).json({
         status: false,
-        message: "order_id and status are required"
+        message: "order_id and status are required",
       });
     }
 
     // Validate status value
-    if (!['Accepted', 'Rejected'].includes(status)) {
+    if (!["Accepted", "Rejected"].includes(status)) {
       return res.status(400).json({
         status: false,
-        message: "Invalid status value. Must be 'Accepted' or 'Rejected'"
+        message: "Invalid status value. Must be 'Accepted' or 'Rejected'",
       });
     }
 
@@ -512,15 +607,17 @@ exports.updateOrderStatus = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         status: false,
-        message: "Order not found"
+        message: "Order not found",
       });
     }
 
     // Check if order can be updated
-    if (["Accepted", "Rejected", "Delivered", "Cancelled"].includes(order.status)) {
+    if (
+      ["Accepted", "Rejected", "Delivered", "Cancelled"].includes(order.status)
+    ) {
       return res.status(400).json({
         status: false,
-        message: `Order cannot be ${status.toLowerCase()}. Current status: ${order.status}`
+        message: `Order cannot be ${status.toLowerCase()}. Current status: ${order.status}`,
       });
     }
 
@@ -531,14 +628,14 @@ exports.updateOrderStatus = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: `Order ${status.toLowerCase()} successfully`,
-      data: order
+      data: order,
     });
   } catch (error) {
     console.error(`Error ${status.toLowerCase()}ing order:`, error);
     return res.status(500).json({
       status: false,
       message: `Failed to ${status.toLowerCase()} order`,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -548,34 +645,84 @@ exports.getAllUsersWithOrders = async (req, res) => {
     const usersWithOrders = await User.findAll({
       include: [
         {
-          association: 'foodOrders',  // ✅ use association alias, not model
-        }
-      ]
+          association: "foodOrders", // ✅ use association alias, not model
+        },
+      ],
     });
 
     res.status(200).json({
       success: true,
-      data: usersWithOrders
+      data: usersWithOrders,
     });
   } catch (error) {
-    console.error('Error fetching users with orders:', error);
+    console.error("Error fetching users with orders:", error);
     res.status(500).json({
       success: false,
-      message: 'Server Error',
+      message: "Server Error",
     });
   }
 };
 
-/**********************************************************/
-exports.signin = async (req, res) => {
-  const token = jwt.sign({ id: 1 }, process.env.JWT_SECRET, {
-    expiresIn: process.env.TOKEN_EXPIRATION,
-  });
-  return res.status(200).json({
-    id: 1,
-    token,
-  });
+/************************* order details with rider , restaurent , order , user *********************************/
+
+const generateCustomOrderId = (date = new Date(), orderNumber = 81) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2); // e.g., 2025 -> 25
+  return `${month}${day}${year}0000${orderNumber}`;
 };
+
+exports.getOrderDetails = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({
+      where: { id: orderId },
+      include: [
+        {
+          model: Restaurant,
+          as: "restaurant",
+          attributes: ["username", "status", "title", "latitude", "longitude"],
+        },
+        {
+          model: User,
+          as: "user",
+          attributes: ["user_name", "user_email", "user_mobile"],
+        },
+        {
+          model: Rider,
+          as: "rider",
+          attributes: ["first_name", "last_name", "mobile"],
+        },
+      ],
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const formattedOrderId = generateCustomOrderId(order.createdAt, 81);
+
+    res.json({
+      orderId: formattedOrderId,
+      user: order.user,
+      rider: order.rider,
+      restaurant: order.restaurant,
+      orderDetails: {
+        id: order.id,
+        createdAt: order.createdAt,
+        total: order.total, // existing field
+        status: order.status,
+        total_amount: order.total_amount || order.total, // fallback if `total_amount` is not separate
+        payment_method: order.payment_method || "Not specified",
+      },
+    });
+  } catch (error) {
+    console.error("Error getting order details:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 /**********************************************************/
 
 // Get all categories

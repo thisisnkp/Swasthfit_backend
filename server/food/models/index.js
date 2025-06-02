@@ -12,7 +12,7 @@ const UserProductAction = require("./userproductaction");
 const ClientDietPlan = require("./clientdietplan");
 const RestaurantDietPackage = require("./restaurentdietpackage");
 const RestaurantSettings = require('./storesetting');
-
+const Rider= require("./rider")
 // ===================== Associations ===================== //
 
 FoodRestaurant.hasMany(DietPackage, {
@@ -174,6 +174,18 @@ FoodRestaurant.hasOne(RestaurantSettings, {
 RestaurantSettings.belongsTo(FoodRestaurant, {
   foreignKey: 'restaurant_id',
   as: 'restaurant',
+});
+
+
+// FoodOrders ↔ Rider (Many orders can belong to one rider)
+FoodOrders.belongsTo(Rider, {
+  foreignKey: 'rider_id',
+  as: 'rider', // 👈 must match what you use in `include`
+});
+
+Rider.hasMany(FoodOrders, {
+  foreignKey: 'rider_id',
+  as: 'orders',
 });
 
 // ===================== Export ===================== //

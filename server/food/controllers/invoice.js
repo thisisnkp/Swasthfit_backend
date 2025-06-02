@@ -15,11 +15,33 @@ exports.getInvoicesAll = async (req, res) => {
   };
 
 // Create New Invoice
+// exports.createInvoice = async (req, res) => {
+//   try {
+//     const newInvoice = await Invoice.create(req.body);
+//     res.json(newInvoice);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 exports.createInvoice = async (req, res) => {
   try {
     const newInvoice = await Invoice.create(req.body);
+
+    // Emit notification via socket
+    const io = req.app.get("io"); // assuming io is set on app
+    if (io) {
+      io.emit("notification", {
+        type: "Invoice",
+        message: `Invoice #${newInvoice.id} has been generated.`,
+        invoice_id: newInvoice.id,
+        user_id: newInvoice.user_id, // optional if you want to target specific user
+        timestamp: new Date(),
+      });
+    }
+
     res.json(newInvoice);
   } catch (err) {
+    console.error("Error creating invoice:", err);
     res.status(500).json({ error: err.message });
   }
 };

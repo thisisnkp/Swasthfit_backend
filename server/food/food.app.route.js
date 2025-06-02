@@ -13,9 +13,9 @@ router.post('/signin', homeController.signin);
 // router.post('/verifyToken', verifyToken);
 
 /******************** Home Section Start ******************/
-router.route('/categories').post(authMiddleware, homeController.getCategories);
-router.route('/food-items').post(authMiddleware, homeController.getAllFoodItems);
-router.route('/restaurants').post(authMiddleware, homeController.getAllRestaurants);
+router.route('/categories').get( homeController.getCategories);
+router.route('/food-items').get( homeController.getAllFoodItems);
+router.route('/restaurants').get(authMiddleware, homeController.getAllRestaurants);
 
 router.route('/special-items').post(authMiddleware, homeController.getSpecialFoodItems);
 /******************** Home Section End *********************/

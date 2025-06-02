@@ -1,70 +1,79 @@
 // 'use strict';
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../../../sequelize');
+const { Model, DataTypes } = require("sequelize");
+const sequelize = require("../../../sequelize");
 const FoodRestaurant = require("../models/Restaurant");
-const FoodItem = require("../models/FoodItem")
-const User = require("../../user/user.model")
+const FoodItem = require("../models/FoodItem");
+const User = require("../../user/user.model");
+const Rider = require("../models/rider")
 class FoodOrders extends Model {}
 
-FoodOrders.init({
+FoodOrders.init(
+  {
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-        allowNull: false,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      allowNull: false,
     },
     order_id: {
-        type: DataTypes.STRING(8),
-        unique: true,
+      type: DataTypes.STRING(8),
+      unique: true,
     },
-    restaurant_id: { 
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: FoodRestaurant,
-          key: "id"
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE"
+    restaurant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: FoodRestaurant,
+        key: "id",
       },
-      
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+
     user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
+    rider_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Rider,
+        key: "id",
+      },
+      allowNull: true,
+    },
+
     address_details: {
-        type: DataTypes.JSON,
-        allowNull: false,
-      },
-      item_details: {
-        type: DataTypes.JSON,
-        allowNull: false,
-      },
-      
-      Payment_via:{
-        type: DataTypes.STRING,
-       
-      },
-   
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+    item_details: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+
+    Payment_via: {
+      type: DataTypes.STRING,
+    },
+
     total_amount: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
+      type: DataTypes.FLOAT,
+      allowNull: false,
     },
     status: {
-        type: DataTypes.STRING,
-        defaultValue: 'Pending',
+      type: DataTypes.STRING,
+      defaultValue: "Pending",
     },
-}, {
+  },
+  {
     sequelize,
-    modelName: 'FoodOrders',
-    tableName: 'foodorders',
+    modelName: "FoodOrders",
+    tableName: "foodorders",
     timestamps: true,
-    createdAt: 'createdAt', 
-    updatedAt: 'updatedAt',
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
     underscored: false,
-    
-    
-});
-
+  },
+);
 
 module.exports = FoodOrders;
