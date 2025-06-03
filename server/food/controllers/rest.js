@@ -17,7 +17,9 @@ const jwt = require("jsonwebtoken");
 const client =require("../../user/user.model");
 const ClientDietPlan = require("../models/clientdietplan");
 const user = require("../../user/user.model");
-const Vendor = require("../models/Vendor")
+const Vendor = require("../models/Vendor");
+const csv = require('csv-parser');
+
 // Create a new restaurant
 
 exports.createRestaurant = async (req, res) => {
@@ -1066,11 +1068,11 @@ exports.getAllDietsByRestaurant = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: "✅ Diet plans fetched successfully",
+      message: " Diet plans fetched successfully",
       data: diets
     });
   } catch (error) {
-    console.error("❌ Error fetching diets by restaurant:", error);
+    console.error(" Error fetching diets by restaurant:", error);
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -1127,3 +1129,125 @@ exports.generateToken = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+// exports.importUsers = async (req, res) => {
+//   const { restaurantId } = req.params;
+//   console.log(req.body);
+  
+//   const users = req.body.users;
+// console.log("users:", users);
+
+//   if (!Array.isArray(users) || users.length === 0) {
+//     return res.status(400).json({ error: "No users to import." });
+//   }
+
+//   const createdUsers = [];
+
+//   for (const user of users) {
+//     const { user_name, password, user_type, user_email } = user;
+
+//     // Basic required fields check
+//     if (!user_name || !password || !user_type) continue;
+
+//     // Skip if username already exists
+//     const exists = await User.findOne({
+//       where: {
+//         [Op.or]: [
+//           { user_name },
+//           user_email ? { user_email } : {},
+//         ],
+//       },
+//     });
+//     if (exists) continue;
+
+//     const newUser = await User.create({
+//       user_name,
+//       password,
+//       user_type,
+//       user_email,
+//     });
+
+//     createdUsers.push(newUser);
+//   }
+
+//   return res.status(200).json({
+//     message: `${createdUsers.length} users imported successfully.`,
+//     users: createdUsers,
+//   });
+// };
+
+exports.importUsers = async (req, res) => {
+  console.log(req.files.file);
+  
+  const { restaurantId } = req.params;
+
+  if (!req.files || !req.files.file) {
+    return res.status(400).json({ status: false, message: 'No file uploaded' });
+  }
+
+  const file = req.files.file;
+  const tempPath = path.join(process.cwd(), 'temp-users.csv');
+
+  try {
+    // Save the uploaded file temporarily
+    await file.mv(tempPath);
+
+    const users = [];
+
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(tempPath)
+        .pipe(csv())
+        .on('data', (row) => {
+  console.log('Parsed CSV row:', row); // debug log each row
+  if (row.user_name && row.password && row.user_type) {
+    users.push({
+      user_name: row.user_name,
+      password: row.password,
+      user_type: row.user_type,
+      user_email: row.user_email || null,
+      restaurant_id: restaurantId || null
+    });
+  }
+})
+
+        .on('end', resolve)
+        .on('error', reject);
+    });
+
+    const createdUsers = [];
+
+    for (const user of users) {
+      const exists = await User.findOne({
+        where: {
+          [Op.or]: [
+            { user_name: user.user_name },
+            user.user_email ? { user_email: user.user_email } : {},
+          ],
+        },
+      });
+
+      if (!exists) {
+        const newUser = await User.create(user);
+        createdUsers.push(newUser);
+      }
+    }
+
+    fs.unlinkSync(tempPath); // Clean up
+
+    return res.status(200).json({
+      status: true,
+      message: `${createdUsers.length} users imported successfully.`,
+      users: createdUsers
+    });
+  } catch (error) {
+    console.error('Error importing users:', error);
+    if (fs.existsSync(tempPath)) {
+      fs.unlinkSync(tempPath);
+    }
+    return res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+
+

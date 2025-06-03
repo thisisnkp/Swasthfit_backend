@@ -137,6 +137,8 @@ router
   router.route("/diets-by-restaurant/:restaurantId").get(verifyToken, restaurantController.getAllDietsByRestaurant);
 
   router.route("/rest/market").post(restaurantController.generateToken);
+  router.route("/rest/:restaurantId/users/import").post(verifyToken, restaurantController.importUsers)
+  // router.route("/rest/user/export").get(verifyToken, restaurantController.exportCustomers);
 /******************** Rest Section End *********************/
 /***************** store setting Section Route Start *****************/
 
@@ -235,6 +237,7 @@ router
   .route("/diet-plans/:userId/:trainerId")
   .get(verifyToken, clientdietplanController.getDietPlansByUserAndTrainer);
 
+ 
 
 /******************** User Section End *********************/
 /******************** Offer Section Start ******************/
