@@ -12,14 +12,14 @@ const axios = require("axios");
 const DietPackage = require("../models/dietpackage");
 const FoodItem = require("../models/FoodItem");
 const FoodOrders = require("../models/foodOrder");
-const RestaurantDietPackage = require("../models/restaurentdietpackage")
+const RestaurantDietPackage = require("../models/restaurentdietpackage");
 const jwt = require("jsonwebtoken");
-const client =require("../../user/user.model");
+const client = require("../../user/user.model");
 const ClientDietPlan = require("../models/clientdietplan");
 const user = require("../../user/user.model");
 const Vendor = require("../models/Vendor");
-const csv = require('csv-parser');
-
+const csv = require("csv-parser");
+const Cart = require("../models/Cart")
 // Create a new restaurant
 
 exports.createRestaurant = async (req, res) => {
@@ -128,7 +128,6 @@ exports.createRestaurant = async (req, res) => {
   }
 };
 
-
 exports.createRestaurant = async (req, res) => {
   try {
     console.log("Request Body:", req.body);
@@ -136,15 +135,24 @@ exports.createRestaurant = async (req, res) => {
     const { username, password, title, vendor_id } = req.body;
 
     // Mandatory field checks
-    if (!username) return res.status(400).json({ error: "Username (email) is required." });
-    if (!password) return res.status(400).json({ error: "Password is required." });
-    if (!title) return res.status(400).json({ error: "Restaurant title is required." });
-    if (!vendor_id) return res.status(400).json({ error: "Vendor ID is required." });
+    if (!username)
+      return res.status(400).json({ error: "Username (email) is required." });
+    if (!password)
+      return res.status(400).json({ error: "Password is required." });
+    if (!title)
+      return res.status(400).json({ error: "Restaurant title is required." });
+    if (!vendor_id)
+      return res.status(400).json({ error: "Vendor ID is required." });
 
     // Username must be a valid gmail address
     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
     if (!emailRegex.test(username)) {
-      return res.status(400).json({ error: "Username must be a valid Gmail address ending with @gmail.com." });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Username must be a valid Gmail address ending with @gmail.com.",
+        });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -155,7 +163,7 @@ exports.createRestaurant = async (req, res) => {
       password: hashedPassword,
       title,
       vendor_id,
-      created_by
+      created_by,
       // All other fields are optional and will default to null or default values
     });
 
@@ -217,10 +225,8 @@ exports.getAllRestaurants = async (req, res) => {
   }
 };
 
-
 exports.getRestaurantById = async (req, res) => {
   try {
-   
     const restaurant = await FoodRestaurant.findByPk(req.params.id, {
       include: [
         {
@@ -329,7 +335,6 @@ exports.deleteRestaurant = async (req, res) => {
   }
 };
 
-
 exports.getNearbyRestaurants = async (req, res) => {
   try {
     const { latitude, longitude, radius = 5 } = req.query; // Radius in km
@@ -340,14 +345,13 @@ exports.getNearbyRestaurants = async (req, res) => {
         .json({ error: "Latitude and Longitude are required" });
     }
 
-const distanceQuery = `
+    const distanceQuery = `
   (6371 * acos(
     cos(radians(:latitude)) * cos(radians(\`FoodRestaurant\`.\`latitude\`)) *
     cos(radians(\`FoodRestaurant\`.\`longitude\`) - radians(:longitude)) +
     sin(radians(:latitude)) * sin(radians(\`FoodRestaurant\`.\`latitude\`))
   ))
 `;
-
 
     const restaurants = await FoodRestaurant.findAll({
       attributes: {
@@ -401,7 +405,6 @@ exports.getRestaurantDietPackage = async (req, res) => {
 
     const restaurantData = restaurant.toJSON();
 
-
     return res.json({
       success: true,
       message: "Restaurant and Diet Package fetched successfully",
@@ -438,30 +441,34 @@ exports.getRestaurantWithMenu = async (req, res) => {
 
     const data = restaurant.get({ plain: true });
 
-  
-    const baseUrl = `http://localhost:4001/public/uploads/`;  // Ensure the base URL is correct
+    const baseUrl = `http://localhost:4001/public/uploads/`; // Ensure the base URL is correct
 
     if (data.rimg && !data.rimg.startsWith("http")) {
-      data.rimg = `${baseUrl}${data.rimg}`;  // Append /public/uploads/ to rimg path
+      data.rimg = `${baseUrl}${data.rimg}`; // Append /public/uploads/ to rimg path
     } else if (data.rimg && data.rimg.startsWith(process.env.APP_URL)) {
-      const fileName = data.rimg.split("/").pop();  // Get the file name if URL already starts with APP_URL
+      const fileName = data.rimg.split("/").pop(); // Get the file name if URL already starts with APP_URL
       data.rimg = `${baseUrl}${fileName}`;
     }
 
     if (data.aadhar_image && !data.aadhar_image.startsWith("http")) {
-      data.aadhar_image = `${baseUrl}${data.aadhar_image}`;  // Append /public/uploads/ to aadhar_image path
-    } else if (data.aadhar_image && data.aadhar_image.startsWith(process.env.APP_URL)) {
-      const fileName = data.aadhar_image.split("/").pop();  // Get the file name if URL already starts with APP_URL
+      data.aadhar_image = `${baseUrl}${data.aadhar_image}`; // Append /public/uploads/ to aadhar_image path
+    } else if (
+      data.aadhar_image &&
+      data.aadhar_image.startsWith(process.env.APP_URL)
+    ) {
+      const fileName = data.aadhar_image.split("/").pop(); // Get the file name if URL already starts with APP_URL
       data.aadhar_image = `${baseUrl}${fileName}`;
     }
-
 
     if (data.foodItems?.length) {
       data.foodItems = data.foodItems.map((item) => {
         if (item.menu_img && !item.menu_img.startsWith("http")) {
-          item.menu_img = `${baseUrl}${item.menu_img}`; 
-        } else if (item.menu_img && item.menu_img.startsWith(process.env.APP_URL)) {
-          const fileName = item.menu_img.split("/").pop();  // Get the file name if URL already starts with APP_URL
+          item.menu_img = `${baseUrl}${item.menu_img}`;
+        } else if (
+          item.menu_img &&
+          item.menu_img.startsWith(process.env.APP_URL)
+        ) {
+          const fileName = item.menu_img.split("/").pop(); // Get the file name if URL already starts with APP_URL
           item.menu_img = `${baseUrl}${fileName}`;
         }
         return item;
@@ -521,11 +528,13 @@ exports.getRestaurantOrders = async (req, res) => {
     });
 
     // Count cancelled orders
-    const cancelledOrdersCount = formattedOrders.filter(order => order.status === "Rejected").length;
+    const cancelledOrdersCount = formattedOrders.filter(
+      (order) => order.status === "Rejected",
+    ).length;
 
     // Sum total order price for accepted orders only
     const totalOrderPrice = formattedOrders
-      .filter(order => order.status !== "Rejected")
+      .filter((order) => order.status !== "Rejected")
       .reduce((sum, order) => {
         return sum + parseFloat(order.total_amount || 0);
       }, 0);
@@ -547,7 +556,6 @@ exports.getRestaurantOrders = async (req, res) => {
     });
   }
 };
-
 
 exports.getRestaurantsWithDietPackage = async (req, res) => {
   try {
@@ -583,8 +591,8 @@ exports.getDiet = async (req, res) => {
       },
       include: [
         {
-          model: DietPackage, 
-          as: "dietPackage", 
+          model: DietPackage,
+          as: "dietPackage",
           required: false,
         },
       ],
@@ -652,9 +660,49 @@ exports.getUsersForRestaurant = async (req, res) => {
       message: error.message,
     });
   }
+};exports.getUsersForRestaurant = async (req, res) => {
+  try {
+    const restaurantId = req.params.restaurantId;
+
+    // Fetch the restaurant by ID
+    const restaurant = await FoodRestaurant.findOne({
+      where: { id: restaurantId },
+    });
+
+    if (!restaurant) {
+      return res.status(404).json({
+        status: false,
+        message: "Restaurant not found",
+      });
+    }
+
+    // Fetch all users linked to this restaurant
+    const users = await client.findAll({
+      where: { restaurant_id: restaurant.id },
+      include: [
+        {
+          model: FoodRestaurant,
+          as: "restaurant",
+          attributes: ["id", "username", "title"],
+        },
+      ],
+    });
+
+    // Even if no users, respond with empty list but with count = 0
+    return res.status(200).json({
+      status: true,
+      message: "Users fetched successfully",
+      count: users.length, // 👈 Count added here
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error fetching users for restaurant:", error);
+    return res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
 };
-
-
 
 exports.Restlogin = async (req, res) => {
   const { username, password } = req.body;
@@ -680,15 +728,13 @@ exports.Restlogin = async (req, res) => {
     }
 
     // ✅ Generate JWT token
-   if (!process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in environment variables");
-}
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
 
-const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
-  expiresIn: process.env.TOKEN_EXPIRATION || '1d',
-});
-
-    
+    const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.TOKEN_EXPIRATION || "1d",
+    });
 
     // ✅ Return success (excluding password)
     res.status(200).json({
@@ -760,7 +806,6 @@ exports.getLoggedInRestaurantOrders = async (req, res) => {
     });
   }
 };
-
 
 exports.userRegistration = async (req, res) => {
   try {
@@ -896,18 +941,22 @@ exports.userLogin = async (req, res) => {
 
     // Basic validation
     if (!user_email || !password) {
-      return res.status(400).json({ message: "Email and password are required!" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required!" });
     }
 
     // Check if user exists
-    const existingUser = await user
-    .findOne({ where: { user_email } });
+    const existingUser = await user.findOne({ where: { user_email } });
     if (!existingUser) {
       return res.status(404).json({ message: "User not found!" });
     }
 
     // Compare the password
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password,
+    );
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid password!" });
     }
@@ -916,7 +965,7 @@ exports.userLogin = async (req, res) => {
     const token = jwt.sign(
       { user_id: existingUser.id, user_email: existingUser.user_email }, // Payload
       process.env.JWT_SECRET, // JWT Secret key (make sure it's in your .env)
-      { expiresIn: "1h" } // Token expires in 1 hour
+      { expiresIn: "1h" }, // Token expires in 1 hour
     );
 
     return res.status(200).json({
@@ -928,40 +977,14 @@ exports.userLogin = async (req, res) => {
         token, // Send token to client
       },
     });
-
   } catch (error) {
     console.error("Login failed:", error);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Get all users for a specific restaurant
-exports.getUsersByRestaurantId = async (req, res) => {
-  const restaurantId = req.params.id;
-
-  try {
-    const restaurant = await FoodRestaurant.findByPk(restaurantId, {
-      include: {
-        model: User,
-        as: 'users',
-      },
-    });
-
-    if (!restaurant) {
-      return res.status(404).json({ message: "Restaurant not found" });
-    }
-
-    const userCount = restaurant.users.length;
-
-    res.status(200).json({
-      users: restaurant.users,
-      totalUsers: userCount,
-    });
-  } catch (error) {
-    console.error("Error fetching users for restaurant:", error);
-    res.status(500).json({ message: "Server error", error });
-  }
-};
 
 
 exports.addDietPlanToRestaurant = async (req, res) => {
@@ -976,12 +999,14 @@ exports.addDietPlanToRestaurant = async (req, res) => {
       combo_price,
       optional_item_price,
       status = "Pending",
-      remark = null
+      remark = null,
     } = req.body;
 
     // Validate required fields
     if (!client_diet_plan_id || !restaurant_id) {
-      return res.status(400).json({ message: "Missing diet plan ID or restaurant ID." });
+      return res
+        .status(400)
+        .json({ message: "Missing diet plan ID or restaurant ID." });
     }
 
     // Check if diet plan exists
@@ -998,10 +1023,12 @@ exports.addDietPlanToRestaurant = async (req, res) => {
 
     // Check if already added
     const existing = await RestaurantDietPackage.findOne({
-      where: { client_diet_plan_id, restaurant_id }
+      where: { client_diet_plan_id, restaurant_id },
     });
     if (existing) {
-      return res.status(409).json({ message: "Diet plan already added to this restaurant." });
+      return res
+        .status(409)
+        .json({ message: "Diet plan already added to this restaurant." });
     }
 
     // Add the diet plan to restaurant
@@ -1015,22 +1042,21 @@ exports.addDietPlanToRestaurant = async (req, res) => {
       combo_price,
       optional_item_price,
       status,
-      remark
+      remark,
     });
 
     return res.status(201).json({
       message: "✅ Diet plan successfully added to restaurant",
-      data: newEntry
+      data: newEntry,
     });
   } catch (error) {
     console.error("❌ Error in addDietPlanToRestaurant:", error);
     return res.status(500).json({
       message: "Server error",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 // GET /food/site/apis/diets-by-restaurant/:restaurantId
 
@@ -1047,7 +1073,7 @@ exports.getAllDietsByRestaurant = async (req, res) => {
       include: [
         {
           model: ClientDietPlan,
-          as: "dietPlan",  // ✅ Correct alias here
+          as: "dietPlan", // ✅ Correct alias here
           attributes: [
             "id",
             "meal_type",
@@ -1060,25 +1086,26 @@ exports.getAllDietsByRestaurant = async (req, res) => {
             "is_water_intake",
             "water_intake",
             "water_intake_unit",
-            "plan_days"
-          ]
-        }
+            "plan_days",
+          ],
+        },
       ],
-      order: [[ "id"]]
+      order: [["id"]],
     });
 
     return res.status(200).json({
       message: " Diet plans fetched successfully",
-      data: diets
+      data: diets,
     });
   } catch (error) {
     console.error(" Error fetching diets by restaurant:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
-
-// for marketting pannel 
+// for marketting pannel
 
 const RestVendor = require("../models/Vendor");
 exports.generateToken = async (req, res) => {
@@ -1130,67 +1157,28 @@ exports.generateToken = async (req, res) => {
   }
 };
 
-
-// exports.importUsers = async (req, res) => {
-//   const { restaurantId } = req.params;
-//   console.log(req.body);
-  
-//   const users = req.body.users;
-// console.log("users:", users);
-
-//   if (!Array.isArray(users) || users.length === 0) {
-//     return res.status(400).json({ error: "No users to import." });
-//   }
-
-//   const createdUsers = [];
-
-//   for (const user of users) {
-//     const { user_name, password, user_type, user_email } = user;
-
-//     // Basic required fields check
-//     if (!user_name || !password || !user_type) continue;
-
-//     // Skip if username already exists
-//     const exists = await User.findOne({
-//       where: {
-//         [Op.or]: [
-//           { user_name },
-//           user_email ? { user_email } : {},
-//         ],
-//       },
-//     });
-//     if (exists) continue;
-
-//     const newUser = await User.create({
-//       user_name,
-//       password,
-//       user_type,
-//       user_email,
-//     });
-
-//     createdUsers.push(newUser);
-//   }
-
-//   return res.status(200).json({
-//     message: `${createdUsers.length} users imported successfully.`,
-//     users: createdUsers,
-//   });
-// };
-
-exports.importUsers = async (req, res) => {
-  console.log(req.files.file);
-  
-  const { restaurantId } = req.params;
-
-  if (!req.files || !req.files.file) {
-    return res.status(400).json({ status: false, message: 'No file uploaded' });
-  }
-
-  const file = req.files.file;
-  const tempPath = path.join(process.cwd(), 'temp-users.csv');
+exports.importCustomers = async (req, res) => {
+  let tempPath;
 
   try {
-    // Save the uploaded file temporarily
+    if (!req.files || !req.files.file) {
+      return res.status(400).json({ status: false, message: "No file uploaded" });
+    }
+
+    const { restaurantId } = req.params;
+
+    if (!restaurantId) {
+      return res.status(400).json({ status: false, message: "Missing restaurant ID" });
+    }
+
+    // Check if restaurant exists
+    const restaurant = await FoodRestaurant.findByPk(restaurantId);
+    if (!restaurant) {
+      return res.status(404).json({ status: false, message: "Restaurant not found" });
+    }
+
+    const file = req.files.file;
+    tempPath = path.join(process.cwd(), "temp-users.csv");
     await file.mv(tempPath);
 
     const users = [];
@@ -1198,56 +1186,101 @@ exports.importUsers = async (req, res) => {
     await new Promise((resolve, reject) => {
       fs.createReadStream(tempPath)
         .pipe(csv())
-        .on('data', (row) => {
-  console.log('Parsed CSV row:', row); // debug log each row
-  if (row.user_name && row.password && row.user_type) {
-    users.push({
-      user_name: row.user_name,
-      password: row.password,
-      user_type: row.user_type,
-      user_email: row.user_email || null,
-      restaurant_id: restaurantId || null
-    });
-  }
-})
+        .on("data", (row) => {
+          if (!row.user_name || !row.password || !row.user_type) return;
 
-        .on('end', resolve)
-        .on('error', reject);
+          users.push({
+            user_name: row.user_name.trim(),
+            user_email: row.user_email ? row.user_email.trim() : null,
+            password: row.password.trim(),
+            user_type: row.user_type.trim(),
+            restaurant_id: restaurantId, // 🔥 Link user to restaurant
+          });
+        })
+        .on("end", resolve)
+        .on("error", reject);
     });
 
-    const createdUsers = [];
-
-    for (const user of users) {
-      const exists = await User.findOne({
-        where: {
-          [Op.or]: [
-            { user_name: user.user_name },
-            user.user_email ? { user_email: user.user_email } : {},
-          ],
-        },
-      });
-
-      if (!exists) {
-        const newUser = await User.create(user);
-        createdUsers.push(newUser);
-      }
+    if (users.length === 0) {
+      fs.unlinkSync(tempPath);
+      return res.status(400).json({ status: false, message: "No valid users found in file" });
     }
 
-    fs.unlinkSync(tempPath); // Clean up
+    // Insert users
+    const createdUsers = await User.bulkCreate(users, { returning: true });
+
+    fs.unlinkSync(tempPath);
+
+    const importedUsers = createdUsers.map((u) => ({
+      id: u.id,
+      user_name: u.user_name,
+      user_email: u.user_email,
+      user_type: u.user_type,
+      restaurant_id:restaurantId
+    }));
+console.log("user " , importedUsers);
 
     return res.status(200).json({
       status: true,
-      message: `${createdUsers.length} users imported successfully.`,
-      users: createdUsers
+      message: "Users imported successfully",
+      imported: importedUsers.length,
+      users: importedUsers,
     });
   } catch (error) {
-    console.error('Error importing users:', error);
-    if (fs.existsSync(tempPath)) {
-      fs.unlinkSync(tempPath);
-    }
+    console.error("Error importing users:", error);
+    if (tempPath && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
     return res.status(500).json({ status: false, message: error.message });
   }
 };
 
 
+exports.addToCart = async (req, res) => {
+  const { user_id, id: fooditem_id, quantity } = req.body;
+  console.log(req.body);
 
+  try {
+    // Step 1: Validate food item
+    const foodItem = await FoodItem.findByPk(fooditem_id);
+    if (!foodItem) {
+      return res.status(404).json({
+        status: false,
+        message: "Food item not found",
+      });
+    }
+
+    // Step 2: Check for existing cart entry
+    let cartItem = await Cart.findOne({
+      where: { user_id, fooditem_id },
+      include: [{ model: FoodItem, as: "foodItem" }],
+    });
+
+    if (cartItem) {
+      // Step 3: Update quantity
+      cartItem.quantity += parseInt(quantity) || 1;
+      await cartItem.save();
+    } else {
+      // Step 4: Create new cart entry
+      cartItem = await Cart.create({
+        user_id,
+        fooditem_id,
+        quantity: parseInt(quantity) || 1,
+      });
+      // Reload cart item with associated FoodItem
+      cartItem = await Cart.findByPk(cartItem.id, {
+        include: [{ model: FoodItem, as: "foodItem" }],
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Item added to cart successfully",
+      cart: cartItem,
+    });
+  } catch (err) {
+    console.error("Add to cart error:", err);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};

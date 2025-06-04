@@ -482,62 +482,7 @@ exports.getAllFoodItemsWithOrders = async (req, res) => {
     });
   }
 };
-exports.addToCart = async (req, res) => {
-  const { user_id, item_id, quantity } = req.body;
 
-  // Validate input
-  if (!user_id || !item_id || !quantity) {
-    return res
-      .status(400)
-      .json({ message: "user_id, item_id, and quantity are required" });
-  }
-
-  try {
-    // 1. Check if item exists
-    const foodItem = await FoodItem.findByPk(item_id);
-    if (!foodItem) {
-      return res.status(404).json({ message: "Food item not found" });
-    }
-
-    // 2. Find or Create a "cart" order for user (status = cart)
-    let [order, created] = await FoodOrders.findOrCreate({
-      where: { user_id: user_id, status: "cart" },
-      defaults: {
-        user_id: user_id,
-        status: "cart",
-      },
-    });
-
-    // 3. Check if this item is already in cart (same order)
-    let cartItem = await OrderItems.findOne({
-      where: {
-        order_id: order.id,
-        item_id: item_id,
-      },
-    });
-
-    if (cartItem) {
-      // Item already in cart → increment quantity
-      cartItem.quantity += quantity;
-      await cartItem.save();
-    } else {
-      // New item → add to cart
-      await OrderItems.create({
-        order_id: order.id,
-        item_id: item_id,
-        quantity: quantity,
-        price: foodItem.price, // Store price at time of add
-      });
-    }
-
-    return res.status(200).json({ message: "Item added to cart successfully" });
-  } catch (error) {
-    console.error("Add to cart error:", error);
-    return res
-      .status(500)
-      .json({ message: "Something went wrong", error: error.message });
-  }
-};
 
 // updated code
 
@@ -704,3 +649,8 @@ exports.deleteFoodItem = async (req, res) => {
       .json({ message: "Error deleting Food Item", error: error.message });
   }
 };
+
+
+
+
+

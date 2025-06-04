@@ -726,21 +726,21 @@ exports.getOrderDetails = async (req, res) => {
 /**********************************************************/
 
 // Get all categories
-exports.getCategories = async (req, res) => {
-  try {
-    const categories = await Category.findAll();
-    return res.status(200).json({
-      status: true,
-      message: "Categories fetch successfully",
-      data: {
-        baseUrl: `${process.env.APP_URL}uploads/`,
-        categories,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ status: true, message: error.message });
-  }
-};
+// exports.getCategories = async (req, res) => {
+//   try {
+//     const categories = await Category.findAll();
+//     return res.status(200).json({
+//       status: true,
+//       message: "Categories fetch successfully",
+//       data: {
+//         baseUrl: `${process.env.APP_URL}uploads/`,
+//         categories,
+//       },
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ status: true, message: error.message });
+//   }
+// };
 
 // Get all Items
 exports.getAllFoodItems = async (req, res) => {
@@ -1237,72 +1237,127 @@ exports.getUserAddressDetails = async (req, res) => {
 };
 
 // Add address
-exports.addAddressApi = async (req, res) => {
+
+exports.addAddress = async (req, res) => {
   try {
     const {
-      address_id,
+      user_id,
       user_name,
       phone_number,
+      address,
       house_no,
       city,
-      address,
       latitude,
       longitude,
-      is_default,
+      is_default
     } = req.body;
-    const created_by = req?.user?.id ?? 1;
-    let addUpdatedAddress = {};
-    if (address_id) {
-      const update = await UserAddress.update(
-        {
-          user_name: user_name,
-          phone_number: phone_number,
-          house_no: house_no,
-          city: city,
-          address: address,
-          latitude: latitude,
-          longitude: longitude,
-          is_default: is_default,
-        },
-        {
-          where: { id: address_id },
-        },
-      );
-      addUpdatedAddress = await UserAddress.findByPk(address_id ?? 1);
-    } else {
-      addUpdatedAddress = await UserAddress.create({
-        user_id: created_by,
-        user_name: user_name,
-        phone_number: phone_number,
-        house_no: house_no,
-        city: city,
-        address: address,
-        latitude: latitude,
-        longitude: longitude,
-        is_default: is_default,
-      });
+
+    if (!user_id || !address || !city) {
+      return res.status(400).json({ status: false, message: "user_id, address, and city are required" });
     }
-    await UserAddress.update(
-      { is_default: false },
-      {
-        where: {
-          user_id: created_by,
-          id: { [Sequelize.Op.ne]: addUpdatedAddress.id },
-        },
-      },
-    );
-    return res.status(200).json({
+
+    // If is_default is true, make others false
+    if (is_default) {
+      await UserAddress.update(
+        { is_default: false },
+        { where: { user_id } }
+      );
+    }
+
+    const newAddress = await UserAddress.create({
+      user_id,
+      user_name,
+      phone_number,
+      address,
+      house_no,
+      city,
+      latitude,
+      longitude,
+      is_default
+    });
+
+    return res.status(201).json({
       status: true,
       message: "Address added successfully",
-      data: {
-        addUpdatedAddress,
-      },
+      address: newAddress
     });
+
   } catch (error) {
-    console.error("Error fetching addresss:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Add address error:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to add address",
+      error: error.message
+    });
   }
 };
+
+// exports.addAddressApi = async (req, res) => {
+//   try {
+//     const {
+  
+//       user_name,
+//       phone_number,
+//       house_no,
+//       city,
+//       address,
+//       latitude,
+//       longitude,
+//       is_default,
+//     } = req.body;
+//     const created_by = req?.user?.id ?? 1;
+//     let addUpdatedAddress = {};
+//     if (address_id) {
+//       const update = await UserAddress.update(
+//         {
+//           user_name: user_name,
+//           phone_number: phone_number,
+//           house_no: house_no,
+//           city: city,
+//           address: address,
+//           latitude: latitude,
+//           longitude: longitude,
+//           is_default: is_default,
+//         },
+//         {
+//           where: { id: address_id },
+//         },
+//       );
+//       addUpdatedAddress = await UserAddress.findByPk(address_id ?? 1);
+//     } else {
+//       addUpdatedAddress = await UserAddress.create({
+//         user_id: created_by,
+//         user_name: user_name,
+//         phone_number: phone_number,
+//         house_no: house_no,
+//         city: city,
+//         address: address,
+//         latitude: latitude,
+//         longitude: longitude,
+//         is_default: is_default,
+//       });
+//     }
+//     await UserAddress.update(
+//       { is_default: false },
+//       {
+//         where: {
+//           user_id: created_by,
+//           id: { [Sequelize.Op.ne]: addUpdatedAddress.id },
+//         },
+//       },
+//     );
+//     return res.status(200).json({
+//       status: true,
+//       message: "Address added successfully",
+//       data: {
+//         addUpdatedAddress,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error fetching addresss:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 // Get order details
 exports.getFoodItemDetails = async (req, res) => {

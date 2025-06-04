@@ -1,7 +1,7 @@
 // models/User.js
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
-
+const FoodRestaurants = require("./Restaurant")
 class User extends Model {}
 
 // Initialize the User model
@@ -13,6 +13,15 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
+    restaurant_id: {
+  type: DataTypes.INTEGER,
+  allowNull: true, // or false if required
+  references: {
+    model: 'foodrestaurants', // or the correct table name
+    key: 'id'
+  }
+}
+,
     user_name: {
       type: DataTypes.STRING,
       allowNull: false,

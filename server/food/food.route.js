@@ -133,11 +133,11 @@ router
 router
   .route("/add-diet")
   .post(verifyToken, restaurantController.addDietPlanToRestaurant);
-  router.route("/restaurant/:id/users").get(restaurantController.getUsersByRestaurantId);
   router.route("/diets-by-restaurant/:restaurantId").get(verifyToken, restaurantController.getAllDietsByRestaurant);
 
   router.route("/rest/market").post(restaurantController.generateToken);
-  router.route("/rest/:restaurantId/users/import").post(verifyToken, restaurantController.importUsers)
+  router.route("/rest/:restaurantId/users/import").post(verifyToken, restaurantController.importCustomers);
+  router.route("/addToCart").post(verifyToken, restaurantController.addToCart)
   // router.route("/rest/user/export").get(verifyToken, restaurantController.exportCustomers);
 /******************** Rest Section End *********************/
 /***************** store setting Section Route Start *****************/
@@ -175,7 +175,6 @@ router
 router
   .route("/food/offer/:id")
   .get(verifyToken, foodItemController.getFoodItemsWithOffers);
-
 
 /******************* Food Item Section End *********************/
 /******************** Diet Package Section Start ******************/
@@ -325,13 +324,13 @@ router
   .route("/home")
   .get(verifyToken, orderController.getUserAddressDetails)
   .get(verifyToken, orderController.getFoodItemDetails)
-  .post(verifyToken, orderController.addFavoriteItem)
+  
   .post(verifyToken, orderController.addFavoriteRestaurant)
   .post(verifyToken, orderController.getSpecialFoodItems)
   .post(verifyToken, orderController.getRestDetails)
   .post(verifyToken, orderController.getUserAddressDetails)
-  .post(verifyToken, orderController.addAddressApi);
-
+ router.route("/add-address") .post(verifyToken, orderController.addAddress);
+router.route("/add-to-fav").post(verifyToken , orderController.addFavoriteItem)
 
 /******************** Home Section End *********************/
 /***************** Invoice Section Route Start *****************/

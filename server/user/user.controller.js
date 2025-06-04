@@ -3,7 +3,7 @@ const config = require("../../config");
 const User = require("./user.model"); //user model
 const UserFitData = require("./userfitdata.model"); //user fit model
 const { use } = require("./user.route");
-
+const FoodItem = require("../food/models/FoodItem")
 // login function
 exports.userLogin = async (req, res) => {
   try {
@@ -224,3 +224,5 @@ exports.getUserDetails = async (req, res) => {
     });
   }
 };
+
+
