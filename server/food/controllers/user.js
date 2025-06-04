@@ -1,13 +1,10 @@
 const Category = require("../models/FoodCategory");
-<<<<<<< HEAD
 const FoodOrders = require("../models/foodOrder");
 const FoodRestaurant = require("../models/Restaurant");
 const UserProductAction = require("../models/userproductaction");
-=======
 const FoodOrders= require("../models/foodOrder");
 const FoodRestaurant = require("../models/Restaurant");
 const UserProductAction = require("../models/userproductaction")
->>>>>>> restaurent_backend
 const fileUploaderSingle =
   require("../../../utilities/fileUpload").fileUploaderSingle;
 const User = require("../models/User");
@@ -79,11 +76,7 @@ exports.createUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, user_name: user.user_name, user_type: user.user_type },
       process.env.JWT_SECRET,
-<<<<<<< HEAD
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1d" },
-=======
       { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
->>>>>>> restaurent_backend
     );
 
     res.status(201).json({
@@ -101,10 +94,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
-
->>>>>>> restaurent_backend
 exports.loginUser = async (req, res) => {
   try {
     const { user_name, password } = req.body;
@@ -123,22 +112,13 @@ exports.loginUser = async (req, res) => {
 
     // JWT claims
     const payload = {
-<<<<<<< HEAD
       iss: "http://127.0.0.1:8000/api/store-login", // Issuer of the token
-      iat: Math.floor(Date.now() / 1000), // Issued at time
-=======
-      iss: 'http://127.0.0.1:8000/api/store-login', // Issuer of the token
       iat: Math.floor(Date.now() / 1000),  // Issued at time
->>>>>>> restaurent_backend
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // Expiration time (1 day from issued time)
       nbf: Math.floor(Date.now() / 1000), // Not before time
       jti: generateJti(), // JWT ID (a unique identifier for the token)
       sub: user.id, // Subject of the token (user ID)
-<<<<<<< HEAD
-      prv: user.private_data || "", // Custom claim (optional)
-=======
       prv: user.private_data || '', // Custom claim (optional)
->>>>>>> restaurent_backend
     };
 
     // Sign the JWT with claims, don't specify expiresIn here
@@ -171,35 +151,19 @@ exports.createFoodOrder = async (req, res) => {
       restaurant_id,
       address_details,
       item_details,
-<<<<<<< HEAD
-      total_amount,
-=======
       total_amount
->>>>>>> restaurent_backend
     } = req.body;
 
     // Validate user
     const user = await User.findByPk(user_id);
     if (!user) {
-<<<<<<< HEAD
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-=======
       return res.status(404).json({ success: false, message: "User not found" });
->>>>>>> restaurent_backend
     }
 
     // Validate restaurant (optional, for safety)
     const restaurant = await FoodRestaurant.findByPk(restaurant_id);
     if (!restaurant) {
-<<<<<<< HEAD
-      return res
-        .status(404)
-        .json({ success: false, message: "Restaurant not found" });
-=======
       return res.status(404).json({ success: false, message: "Restaurant not found" });
->>>>>>> restaurent_backend
     }
 
     // Generate a unique order ID like ORD-12345678
@@ -218,31 +182,19 @@ exports.createFoodOrder = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Order placed successfully",
-<<<<<<< HEAD
-      data: newOrder,
-=======
       data: newOrder
->>>>>>> restaurent_backend
     });
   } catch (error) {
     console.error("Order Creation Error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to place order",
-<<<<<<< HEAD
-      error: error.message,
-=======
       error: error.message
->>>>>>> restaurent_backend
     });
   }
 };
 
-<<<<<<< HEAD
-// get all users
-=======
 // get all users 
->>>>>>> restaurent_backend
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -301,25 +253,13 @@ exports.updateOrderStatus = async (req, res) => {
     const { order_id, status } = req.body;
 
     if (!order_id || !status) {
-<<<<<<< HEAD
-      return res
-        .status(400)
-        .json({ status: false, message: "order_id and status are required" });
-=======
       return res.status(400).json({ status: false, message: "order_id and status are required" });
->>>>>>> restaurent_backend
     }
 
     const order = await FoodOrders.findOne({ where: { order_id } });
 
     if (!order) {
-<<<<<<< HEAD
-      return res
-        .status(404)
-        .json({ status: false, message: "Order not found" });
-=======
       return res.status(404).json({ status: false, message: "Order not found" });
->>>>>>> restaurent_backend
     }
 
     order.status = status;
@@ -338,10 +278,6 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
-
->>>>>>> restaurent_backend
 exports.getUserOrders = async (req, res) => {
   try {
     const { user_id } = req.params;
@@ -443,26 +379,16 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// show user details
-
-exports.getUserProfile = async function (req, res) {
-=======
 // show user details 
 
 exports.getUserProfile = async function(req, res) {
->>>>>>> restaurent_backend
   const userId = req.params.id;
 
   try {
     const user = await User.findByPk(userId);
 
     if (!user) {
-<<<<<<< HEAD
-      return res.status(404).json({ error: "User not found" });
-=======
       return res.status(404).json({ error: 'User not found' });
->>>>>>> restaurent_backend
     }
 
     const restaurants = await FoodRestaurant.findAll({
@@ -474,19 +400,11 @@ exports.getUserProfile = async function(req, res) {
       restaurants,
     });
   } catch (err) {
-<<<<<<< HEAD
-    console.error("Error fetching profile:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-// cancel order
-=======
     console.error('Error fetching profile:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 // cancel order 
->>>>>>> restaurent_backend
 exports.cancelOrder = async (req, res) => {
   try {
     const { order_id } = req.body;
@@ -535,20 +453,6 @@ exports.cancelOrder = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// create user action on fooditem
-exports.createUserProductAction = async (req, res) => {
-  try {
-    const { latitude, longitude, product_id, action } = req.body;
-
-    // Static module_type (always 'rest')
-    const module_type = "Restaurent";
-
-    const user_id = req.user?.id || req.body.user_id;
-
-    if (!user_id || !product_id || !action) {
-      return res.status(400).json({ message: "Missing required fields." });
-=======
 
 // create user action on fooditem 
 exports.createUserProductAction = async (req, res) => {
@@ -568,7 +472,6 @@ exports.createUserProductAction = async (req, res) => {
 
     if (!user_id || !product_id || !action) {
       return res.status(400).json({ message: 'Missing required fields.' });
->>>>>>> restaurent_backend
     }
 
     const userAction = await UserProductAction.create({
@@ -577,11 +480,7 @@ exports.createUserProductAction = async (req, res) => {
       longitude,
       product_id,
       module_type,
-<<<<<<< HEAD
-      action,
-=======
       action
->>>>>>> restaurent_backend
     });
 
     return res.status(201).json({
@@ -589,15 +488,6 @@ exports.createUserProductAction = async (req, res) => {
       longitude: userAction.longitude,
       product_id: userAction.product_id,
       module_type: userAction.module_type,
-<<<<<<< HEAD
-      action: userAction.action,
-    });
-  } catch (error) {
-    console.error("Error logging user action:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-=======
       action: userAction.action
     });
 
@@ -606,46 +496,10 @@ exports.createUserProductAction = async (req, res) => {
     return res.status(500).json({
       message: 'Internal server error',
       error: error.message
->>>>>>> restaurent_backend
     });
   }
 };
 
-<<<<<<< HEAD
-exports.deleteUser = async (req, res) => {
-  //
-  try {
-    const { id } = req.params; // Get user ID from parameters
-
-    const userToDelete = await User.findByPk(id); // Find the user by primary key
-
-    if (!userToDelete) {
-      // If user not found, return 404
-      return res.status(404).json({
-        status: false,
-        message: "User not found",
-      });
-    }
-
-    await userToDelete.destroy(); // Delete the user from the database
-
-    return res.status(200).json({
-      // Return success message
-      status: true,
-      message: "User deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting user:", error); // Log any errors
-    return res.status(500).json({
-      // Return server error
-      status: false,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
-=======
 
 
 
->>>>>>> restaurent_backend

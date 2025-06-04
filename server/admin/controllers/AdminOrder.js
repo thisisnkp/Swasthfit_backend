@@ -1,11 +1,8 @@
 const Order = require("../models/order");
-<<<<<<< HEAD
-const User = require("../../food/models/User"); // Ensure this path points to the correct User model with user_name, user_email
-const Restaurant = require("../../food/models/Restaurant");
-=======
 const User = require("../../food/models/User");
-const Restaurant = require("../../food/models/Restaurant")
->>>>>>> restaurent_backend
+const Restaurant = require("../../food/models/Restaurant");
+
+// Create Order
 exports.createOrders = async (req, res) => {
   try {
     const {
@@ -38,9 +35,7 @@ exports.createOrders = async (req, res) => {
 
     const user = await User.findByPk(user_id);
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const order_id = `ORD-${Date.now()}`;
@@ -90,15 +85,14 @@ exports.createOrders = async (req, res) => {
   }
 };
 
+// Delete Order
 exports.deleteOrder = async (req, res) => {
   try {
     const { id } = req.params;
 
     const order = await Order.findByPk(id);
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     await order.destroy();
@@ -106,71 +100,41 @@ exports.deleteOrder = async (req, res) => {
     return res.json({ success: true, message: "Order deleted successfully" });
   } catch (error) {
     console.error("Error deleting order:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-<<<<<<< HEAD
-=======
-
->>>>>>> restaurent_backend
-// exports.getAllOrdes= async (req, res) => {
-//     try {
-//       const orders = await Order.findAll({
-//         include: [
-//           {
-//             model: Restaurant,
-//             attributes: ['id', 'name']
-//           },
-//           {
-//             model: User,
-//             attributes: ['id', 'name', 'email']
-//           }
-//         ],
-//         order: [['createdAt', 'DESC']]
-//       });
-
-//       res.json({ success: true, data: orders });
-//     } catch (error) {
-//       console.error('Error fetching orders:', error);
-//       res.status(500).json({ success: false, message: 'Something went wrong' });
-//     }
-//   }
-
-<<<<<<< HEAD
+// Get All Orders
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
       include: [
         {
           model: User,
-          as: "user", // Match alias defined in model
-          // FIX: Use correct attribute names for the User model
-          attributes: ["id", "user_name", "user_email", "user_mobile"], // Corrected attributes
+          as: "user",
+          attributes: ["id", "user_name", "user_email", "user_mobile"], // or ['name', 'email', 'phone'] based on your actual User model
         },
       ],
       order: [["order_date_time", "DESC"]],
     });
 
-    // Calculate counts and total price here
     const totalCount = orders.length;
-    const cancelledCount = orders.filter(
-      (order) => order.status === "Cancelled" || order.status === "Rejected",
+    const cancelledCount = orders.filter(order =>
+      ["Cancelled", "Rejected"].includes(order.order_status)
     ).length;
+
     const totalRevenue = orders.reduce(
       (sum, order) => sum + parseFloat(order.total_amount || 0),
-      0,
+      0
     );
 
     return res.status(200).json({
       status: true,
       message: "Orders fetched successfully",
-      count: totalCount, // Total orders
-      cancelled_count: cancelledCount, // Cancelled orders
-      total_order_price: totalRevenue.toFixed(2), // Total revenue
-      data: orders, // Array of all order objects
+      count: totalCount,
+      cancelled_count: cancelledCount,
+      total_order_price: totalRevenue.toFixed(2),
+      data: orders,
     });
   } catch (error) {
     console.error("Error fetching orders:", error);
@@ -181,33 +145,3 @@ exports.getAllOrders = async (req, res) => {
     });
   }
 };
-=======
-
-
-exports.getAllOrders = async (req, res) => {
-    try {
-      const orders = await Order.findAll({
-        include: [{
-            model: User,
-            as: 'user', // Match alias defined in model
-            attributes: ['id', 'name', 'email', 'phone']
-        }],
-        order: [['order_date_time', 'DESC']]
-    });
-    
-
-        return res.status(200).json({
-            success: true,
-            data: orders
-        });
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to fetch orders'
-        });
-    }
-};
-
-
->>>>>>> restaurent_backend

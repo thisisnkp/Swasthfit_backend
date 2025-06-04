@@ -1,23 +1,9 @@
-<<<<<<< HEAD
-"use strict";
-=======
 'use strict';
->>>>>>> restaurent_backend
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
-<<<<<<< HEAD
-    await queryInterface.createTable("UserAddress", {
-=======
     await queryInterface.createTable('UserAddress', {
->>>>>>> restaurent_backend
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -26,11 +12,14 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER,
-<<<<<<< HEAD
         allowNull: false,
-=======
-        allowNull: false
->>>>>>> restaurent_backend
+        // Optionally add a foreign key:
+        // references: {
+        //   model: 'Users',
+        //   key: 'id'
+        // },
+        // onUpdate: 'CASCADE',
+        // onDelete: 'CASCADE'
       },
       user_name: {
         type: Sequelize.STRING,
@@ -63,47 +52,22 @@ module.exports = {
       is_default: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-<<<<<<< HEAD
-        defaultValue: 1,
-=======
-        defaultValue: 1
->>>>>>> restaurent_backend
+        defaultValue: true,
       },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-<<<<<<< HEAD
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-=======
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
->>>>>>> restaurent_backend
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-<<<<<<< HEAD
-        defaultValue: Sequelize.literal(
-          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
-        ),
-=======
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
->>>>>>> restaurent_backend
       },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-<<<<<<< HEAD
-    await queryInterface.dropTable("UserAddress");
-  },
-=======
     await queryInterface.dropTable('UserAddress');
   }
->>>>>>> restaurent_backend
 };

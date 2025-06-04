@@ -234,19 +234,6 @@ exports.updateCategory = async (req, res) => {
       return res.status(404).json({ error: "Category not found." });
     }
 
-<<<<<<< HEAD
-    const { name, description, parent_id } = req.body;
-
-    let image = category.img; // default to existing image
-
-    if (req.files && req.files.img) {
-      const uploaded = await fileUploaderSingle(
-        "./public/uploads/",
-        req.files.img,
-      );
-      image = uploaded.newfileName;
-    }
-=======
     const { name, description, parent_id, status } = req.body;
 
     let image = category.img; // keep existing image by default
@@ -260,20 +247,11 @@ exports.updateCategory = async (req, res) => {
   console.log("Final image to save:", image);
 }
 
->>>>>>> restaurent_backend
 
     const updated = await category.update({
       name,
       description,
       parent_id,
-<<<<<<< HEAD
-      img: image,
-    });
-
-    // Add full image path in response
-    const updatedData = updated.toJSON();
-    updatedData.img = image ? `${process.env.APP_URL}/uploads/${image}` : null;
-=======
       status,  // include status
       img: image,
     });
@@ -282,7 +260,6 @@ exports.updateCategory = async (req, res) => {
     updatedData.img = image ? `http://localhost:4001/public/uploads/${image}` : null;
 
     console.log(updatedData);
->>>>>>> restaurent_backend
 
     return res.status(200).json({
       status: true,
@@ -293,8 +270,6 @@ exports.updateCategory = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message });
   }
 };
-<<<<<<< HEAD
-=======
 
 // exports.updateCategory = async (req, res) => {
 //   try {
@@ -336,7 +311,6 @@ exports.updateCategory = async (req, res) => {
 //     return res.status(500).json({ status: false, message: error.message });
 //   }
 // };
->>>>>>> restaurent_backend
 // Delete a category
 exports.deleteCategory = async (req, res) => {
   try {

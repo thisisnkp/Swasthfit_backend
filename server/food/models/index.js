@@ -1,205 +1,166 @@
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../../../sequelize');
 
-const sequelize = require('../../../sequelize'); // or './sequelize' depending on path
-
-// Import models
-const DietPackage = require('./dietpackage');
-const FoodRestaurant = require('./Restaurant');
-const FoodOrders = require('./foodOrder');
-const FoodItem = require('./FoodItem');
+// Models
+const FoodItemOffers = require("../models/ItemOffer");
+const FoodRestaurant = require("../models/Restaurant");
+const FoodOrders = require("../models/foodOrder");
+const DietPackage = require("./dietpackage");
 const Vendor = require("./Vendor");
 const User = require("../../user/user.model");
 const UserProductAction = require("./userproductaction");
 const ClientDietPlan = require("./clientdietplan");
-<<<<<<< HEAD
-// const ClientWorkout = require('./ClientWorkout');
 const RestaurantDietPackage = require("./restaurentdietpackage");
+const RestaurantSettings = require("./storesetting");
 
-// ===================== Associations ===================== //
+class FoodItem extends Model {}
 
-// FoodRestaurant ↔ DietPackage association
-// One restaurant can have many diet packages
-=======
-const RestaurantDietPackage = require("./restaurentdietpackage");
-const RestaurantSettings = require('./storesetting');
-
-// ===================== Associations ===================== //
-
->>>>>>> restaurent_backend
-FoodRestaurant.hasMany(DietPackage, {
-  foreignKey: "restaurant_id",
-  as: "dietPackage", // Use plural name for clarity
+FoodItem.init({
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    restaurant_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'FoodRestaurants',
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+    },
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'FoodCategories',
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+    },
+    menu_name: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    description: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    menu_img: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    price: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    discount: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        defaultValue: 0.0,
+        comment: "Discount in percentage"
+    },
+    total_quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    unit: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "e.g. Plate, Bowl, Piece"
+    },
+    cost_price: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: "Backend purchase cost"
+    },
+    calories: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: "Calories in kcal"
+    },
+    diet_type: {
+        type: DataTypes.ENUM('veg', 'non_veg', 'vegan', 'eggetarian'),
+        allowNull: false,
+        defaultValue: 'veg'
+    },
+    variants: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated variants e.g. Small, Medium, Large"
+    },
+    addons: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated addons e.g. Extra Cheese, Gravy"
+    },
+    spice_level: {
+        type: DataTypes.ENUM('none', 'mild', 'medium', 'hot'),
+        allowNull: false,
+        defaultValue: 'none'
+    },
+    tags: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated tags e.g. Bestseller, Kids"
+    },
+    prep_time: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: "Preparation time in minutes"
+    },
+    available: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        comment: "Availability: true = Available, false = Not Available"
+    },
+    is_recommended: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    rating: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        defaultValue: 0.0
+    },
+    distance: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    ingredients: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated ingredients e.g. rice, jeera, tomato"
+    },
+    cuisine_type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        comment: "Cuisine type e.g. Indian, Chinese"
+    },
+}, {
+    sequelize,
+    modelName: 'FoodItem',
+    tableName: 'fooditems',
+    underscored: true,
+    timestamps: true
 });
-
-// Each diet package belongs to one restaurant
-DietPackage.belongsTo(FoodRestaurant, {
-  foreignKey: "restaurant_id",
-  as: "restaurant",
-});
-
-// Define relationships (Associations)
-FoodRestaurant.hasMany(User, { foreignKey: 'restaurant_id', as: 'users' }); // One-to-many relationship
-User.belongsTo(FoodRestaurant, { foreignKey: 'restaurant_id', as: 'restaurant' }); // Many-to-one relationship
-
-// In your models/user.js file
-User.belongsTo(FoodRestaurant, {
-  foreignKey: 'restaurant_id',
-  onDelete: 'SET NULL',
-});
-
-// In your models/foodRestaurant.js file
-FoodRestaurant.hasMany(User, {
-  foreignKey: 'restaurant_id',
-});
-
-// FoodRestaurant ↔ FoodOrders
-FoodRestaurant.hasMany(FoodOrders, {
-  foreignKey: 'restaurant_id',
-  as: 'orders',
-  onDelete: 'CASCADE',
-});
-FoodOrders.belongsTo(FoodRestaurant, {
-  foreignKey: 'restaurant_id',
-  as: 'restaurant',
-});
-
-// ✅ Association
-// Association: UserProductAction belongs to User
-UserProductAction.belongsTo(User, {
-  foreignKey: 'user_id',
-  as: 'user',
-});
-
-// Association: User has many UserProductActions
-User.hasMany(UserProductAction, {
-  foreignKey: 'user_id',
-  as: 'actions',
-});
-
-// Association: UserProductAction belongs to FoodItem
-UserProductAction.belongsTo(FoodItem, {
-  foreignKey: 'product_id',
-  as: 'food_item',
-});
-
-// Association: FoodItem has many UserProductActions
-FoodItem.hasMany(UserProductAction, {
-  foreignKey: 'product_id',
-  as: 'actions',
-});
-
-// Inside your model/index.js
-Vendor.hasMany(FoodRestaurant, { foreignKey: "vendor_id", as: "restaurants" });
-FoodRestaurant.belongsTo(Vendor, { foreignKey: "vendor_id", as: "vendor" });
-
-// Define associations AFTER models are loaded
-User.hasMany(UserProductAction, { foreignKey: 'user_id' });
-FoodItem.hasMany(UserProductAction, { foreignKey: 'product_id' });
-UserProductAction.belongsTo(User, { foreignKey: 'user_id' });
-UserProductAction.belongsTo(FoodItem, { foreignKey: 'product_id' });
 
 // Associations
-User.hasMany(ClientDietPlan, { foreignKey: "user_id" });
-ClientDietPlan.belongsTo(User, { foreignKey: "user_id" });
+FoodItem.hasMany(FoodItemOffers, { foreignKey: "item_id", as: "offers", onDelete: "CASCADE" });
+FoodItemOffers.belongsTo(FoodItem, { foreignKey: "item_id", as: "foodItem", onDelete: "CASCADE" });
 
-// RestaurantDietPackage ↔ ClientDietPlan (Many-to-One relationship)
-RestaurantDietPackage.belongsTo(ClientDietPlan, {
-  foreignKey: "client_diet_plan_id",
-  as: "dietPlan",
+FoodItem.belongsTo(FoodRestaurant, {
+    foreignKey: 'restaurant_id',
+    as: 'restaurant',
+    onDelete: 'CASCADE'
+});
+FoodRestaurant.hasMany(FoodItem, {
+    foreignKey: 'restaurant_id',
+    as: 'foodItems',
+    onDelete: 'CASCADE'
 });
 
-// RestaurantDietPackage ↔ FoodRestaurant (Many-to-One relationship)
-RestaurantDietPackage.belongsTo(FoodRestaurant, {
-  foreignKey: "restaurant_id",
-  as: "restaurant",
-});
-
-// Reverse associations for ClientDietPlan ↔ RestaurantDietPackage
-ClientDietPlan.hasMany(RestaurantDietPackage, {
-  foreignKey: "client_diet_plan_id",
-  as: "restaurantPlans",
-});
-
-// Reverse associations for FoodRestaurant ↔ RestaurantDietPackage
-FoodRestaurant.hasMany(RestaurantDietPackage, {
-  foreignKey: "restaurant_id",
-  as: "dietPlanPackages",
-});
-
-// Restaurant ↔ DietPackage association (Many-to-Many via RestaurantDietPackage)
-FoodRestaurant.belongsToMany(DietPackage, {
-  through: RestaurantDietPackage,
-  foreignKey: "restaurant_id",
-  otherKey: "client_diet_plan_id",
-  as: "availableDietPlans", // Updated alias for this association
-});
-// Define the many-to-many relationship between FoodRestaurant and DietPackage through RestaurantDietPackage
-FoodRestaurant.belongsToMany(DietPackage, {
-  through: RestaurantDietPackage,
-  foreignKey: 'restaurant_id',
-  otherKey: 'client_diet_plan_id',
-  as: 'dietPlans',
-});
-
-// DietPlan ↔ Restaurant association (Many-to-Many via RestaurantDietPackage)
-DietPackage.belongsToMany(FoodRestaurant, {
-  through: RestaurantDietPackage,
-  foreignKey: "client_diet_plan_id",
-  otherKey: "restaurant_id",
-  as: "restaurantsOfferingDietPlan", // Updated alias for this association
-});
-// Define the many-to-many relationship between DietPackage and FoodRestaurant through RestaurantDietPackage
-DietPackage.belongsToMany(FoodRestaurant, {
-  through: RestaurantDietPackage,
-  foreignKey: 'client_diet_plan_id',
-  otherKey: 'restaurant_id',
-  as: 'restaurants',
-});
-
-User.hasMany(FoodOrders, {
-  foreignKey: 'user_id',
-  as: 'foodOrders',  // 👈 Changed alias to be unique
-});
-
-FoodOrders.belongsTo(User, {
-  foreignKey: 'user_id',
-  as: 'user',
-});
-
-
-// Association
-User.hasOne(Vendor, { foreignKey: "user_id", as: "vendor" });
-Vendor.belongsTo(User, { foreignKey: "user_id", as: "user" });
-
-<<<<<<< HEAD
-=======
-
-
-// One FoodRestaurant has one RestaurantSettings
-FoodRestaurant.hasOne(RestaurantSettings, {
-  foreignKey: 'restaurant_id',
-  as: 'settings',  // alias for eager loading
-  onDelete: 'CASCADE',  // optional, if restaurant deleted then settings deleted
-  onUpdate: 'CASCADE',
-});
-
-// RestaurantSettings belongs to one FoodRestaurant
-RestaurantSettings.belongsTo(FoodRestaurant, {
-  foreignKey: 'restaurant_id',
-  as: 'restaurant',
-});
-
->>>>>>> restaurent_backend
-// ===================== Export ===================== //
-
-module.exports = {
-  sequelize,
-  User,
-  // ClientWorkout,
-  ClientDietPlan,
-  UserProductAction,
-  DietPackage,
-  FoodRestaurant,
-  FoodOrders,
-  FoodItem,
-  Vendor
-};
+module.exports = FoodItem;

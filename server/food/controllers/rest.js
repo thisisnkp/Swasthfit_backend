@@ -301,110 +301,103 @@ exports.updateRestaurant = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// exports.updateRestaurant = async (req, res) => {
-//   try {
-//     const {
-//       title,
-//       status,
-//       is_popular,
-//       is_fitmode,
-//       is_dietpkg,
-//       is_dining,
-//       full_address,
-//       pincode,
-//       landmark,
-//       latitude,
-//       longitude,
-//       store_charge,
-//       bank_name,
-//       ifsc,
-//       receipt_name,
-//       acc_number,
-//       rest_status,
-//       sdesc,
-//       pan_no,
-//       gst_no,
-//       fssai_no,
-//       aadhar_no,
-//       diet_pack_id,
-//     } = req.body;
+exports.updateRestaurant = async (req, res) => {
+  try {
+    const {
+      title,
+      status,
+      is_popular,
+      is_fitmode,
+      is_dietpkg,
+      is_dining,
+      full_address,
+      pincode,
+      landmark,
+      latitude,
+      longitude,
+      store_charge,
+      bank_name,
+      ifsc,
+      receipt_name,
+      acc_number,
+      rest_status,
+      sdesc,
+      pan_no,
+      gst_no,
+      fssai_no,
+      aadhar_no,
+      diet_pack_id,
+    } = req.body;
 
-//     const restaurant = await FoodRestaurant.findByPk(req.params.id, {
-//       include: {
-//         model: DietPackage,
-//         as: "dietPackage",
-//       },
-//     });
+    const restaurant = await FoodRestaurant.findByPk(req.params.id, {
+      include: {
+        model: DietPackage,
+        as: "dietPackage",
+      },
+    });
 
-//     if (!restaurant) {
-//       return res.status(404).json({ error: "Restaurant not found" });
-//     }
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
+    }
 
-//     let rimg = restaurant.rimg;
-//     let aadhar_image = restaurant.aadhar_image;
+    let rimg = restaurant.rimg;
+    let aadhar_image = restaurant.aadhar_image;
 
-//     if (req.files && req.files.rimg) {
-//       const uploadedRimg = await fileUploaderSingle(
-//         "./public/uploads/",
-//         req.files.rimg,
-//       );
-//       rimg = uploadedRimg.newFileName;
-//     }
+    if (req.files && req.files.rimg) {
+      const uploadedRimg = await fileUploaderSingle(
+        "./public/uploads/",
+        req.files.rimg,
+      );
+      rimg = uploadedRimg.newFileName;
+    }
 
-//     if (req.files && req.files.aadhar_image) {
-//       const uploadedAadhar = await fileUploaderSingle(
-//         "./public/uploads/",
-//         req.files.aadhar_image,
-//       );
-//       aadhar_image = uploadedAadhar.newFileName;
-//     }
+    if (req.files && req.files.aadhar_image) {
+      const uploadedAadhar = await fileUploaderSingle(
+        "./public/uploads/",
+        req.files.aadhar_image,
+      );
+      aadhar_image = uploadedAadhar.newFileName;
+    }
 
-//     // Update the restaurant
-//     await restaurant.update({
-//       title,
-//       rimg,
-//       status,
-//       is_popular,
-//       is_fitmode,
-//       is_dietpkg,
-//       is_dining,
-//       full_address,
-//       pincode,
-//       landmark,
-//       latitude,
-//       longitude,
-//       store_charge,
-//       bank_name,
-//       ifsc,
-//       receipt_name,
-//       acc_number,
-//       rest_status,
-//       sdesc,
-//       pan_no,
-//       gst_no,
-//       fssai_no,
-//       aadhar_no,
-//       aadhar_image,
-//       diet_pack_id,
-//     });
+    await restaurant.update({
+      title,
+      rimg,
+      status,
+      is_popular,
+      is_fitmode,
+      is_dietpkg,
+      is_dining,
+      full_address,
+      pincode,
+      landmark,
+      latitude,
+      longitude,
+      store_charge,
+      bank_name,
+      ifsc,
+      receipt_name,
+      acc_number,
+      rest_status,
+      sdesc,
+      pan_no,
+      gst_no,
+      fssai_no,
+      aadhar_no,
+      aadhar_image,
+      diet_pack_id,
+    });
 
-//     return res.status(200).json({
-//       status: true,
-//       message: "Restaurant updated successfully",
-//       data: restaurant,
-//     });
-//   } catch (error) {
-//     console.error("Error updating restaurant:", error);
-//     return res
-//       .status(500)
-//       .json({ status: false, message: "Internal server error" });
-//   }
-// };
+    return res.status(200).json({
+      status: true,
+      message: "Restaurant updated successfully",
+      data: restaurant,
+    });
+  } catch (error) {
+    console.error("Error updating restaurant:", error);
+    return res.status(500).json({ status: false, message: "Internal server error" });
+  }
+};
 
-// Delete a restaurant
-=======
->>>>>>> restaurent_backend
 exports.deleteRestaurant = async (req, res) => {
   try {
     const restaurant = await FoodRestaurant.findByPk(req.params.id);
@@ -412,7 +405,6 @@ exports.deleteRestaurant = async (req, res) => {
       return res.status(404).json({ error: "Restaurant not found" });
     }
 
-    // Delete the image file if it exists
     const imagePath = path.join(
       __dirname,
       "../public/uploads/",
@@ -422,7 +414,126 @@ exports.deleteRestaurant = async (req, res) => {
       fs.unlinkSync(imagePath);
     }
 
-    // Delete the restaurant
+    await restaurant.destroy();
+    res.status(200).json({ message: "Restaurant deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting restaurant:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.updateRestaurant = async (req, res) => {
+  try {
+    const {
+      title,
+      status,
+      is_popular,
+      is_fitmode,
+      is_dietpkg,
+      is_dining,
+      full_address,
+      pincode,
+      landmark,
+      latitude,
+      longitude,
+      store_charge,
+      bank_name,
+      ifsc,
+      receipt_name,
+      acc_number,
+      rest_status,
+      sdesc,
+      pan_no,
+      gst_no,
+      fssai_no,
+      aadhar_no,
+      diet_pack_id,
+    } = req.body;
+
+    const restaurant = await FoodRestaurant.findByPk(req.params.id, {
+      include: {
+        model: DietPackage,
+        as: "dietPackage",
+      },
+    });
+
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
+    }
+
+    let rimg = restaurant.rimg;
+    let aadhar_image = restaurant.aadhar_image;
+
+    if (req.files && req.files.rimg) {
+      const uploadedRimg = await fileUploaderSingle(
+        "./public/uploads/",
+        req.files.rimg,
+      );
+      rimg = uploadedRimg.newFileName;
+    }
+
+    if (req.files && req.files.aadhar_image) {
+      const uploadedAadhar = await fileUploaderSingle(
+        "./public/uploads/",
+        req.files.aadhar_image,
+      );
+      aadhar_image = uploadedAadhar.newFileName;
+    }
+
+    await restaurant.update({
+      title,
+      rimg,
+      status,
+      is_popular,
+      is_fitmode,
+      is_dietpkg,
+      is_dining,
+      full_address,
+      pincode,
+      landmark,
+      latitude,
+      longitude,
+      store_charge,
+      bank_name,
+      ifsc,
+      receipt_name,
+      acc_number,
+      rest_status,
+      sdesc,
+      pan_no,
+      gst_no,
+      fssai_no,
+      aadhar_no,
+      aadhar_image,
+      diet_pack_id,
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "Restaurant updated successfully",
+      data: restaurant,
+    });
+  } catch (error) {
+    console.error("Error updating restaurant:", error);
+    return res.status(500).json({ status: false, message: "Internal server error" });
+  }
+};
+
+exports.deleteRestaurant = async (req, res) => {
+  try {
+    const restaurant = await FoodRestaurant.findByPk(req.params.id);
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
+    }
+
+    const imagePath = path.join(
+      __dirname,
+      "../public/uploads/",
+      restaurant.rimg,
+    );
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+
     await restaurant.destroy();
     res.status(200).json({ message: "Restaurant deleted successfully" });
   } catch (error) {
@@ -431,113 +542,50 @@ exports.deleteRestaurant = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// find nearbyRestaurent
-// exports.getNearbyRestaurants = async (req, res) => {
-//   try {
-//     const { latitude, longitude, radius = 5 } = req.query; // Radius in km
-
-//     if (!latitude || !longitude) {
-//       return res
-//         .status(400)
-//         .json({ error: "Latitude and Longitude are required" });
-//     }
-
-//     const distanceQuery = `
-//             (6371 * acos(
-//                 cos(radians(:latitude)) * cos(radians(latitude)) *
-//                 cos(radians(longitude) - radians(:longitude)) +
-//                 sin(radians(:latitude)) * sin(radians(latitude))
-//             ))`;
-
-//     const restaurants = await FoodRestaurant.findAll({
-//       attributes: {
-//         include: [[Sequelize.literal(distanceQuery), "distance"]],
-//       },
-//       where: Sequelize.literal(`${distanceQuery} < :radius`),
-//       replacements: { latitude, longitude, radius },
-//       order: Sequelize.literal("distance ASC"),
-//     });
-
-//     res.status(200).json({
-//       status: true,
-//       message: "Nearby restaurants fetched successfully",
-//       data: restaurants,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching nearby restaurants:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-// exports.getNearbyRestaurants = async (req, res) => {
-//   try {
-//     const { latitude, longitude, radius = 5 } = req.query; // Radius in km
-
-//     if (!latitude || !longitude) {
-//       return res
-//         .status(400)
-//         .json({ error: "Latitude and Longitude are required" });
-//     }
-
-//     const distanceQuery = `
-//             (6371 * acos(
-//                 cos(radians(:latitude)) * cos(radians(latitude)) *
-//                 cos(radians(longitude) - radians(:longitude)) +
-//                 sin(radians(:latitude)) * sin(radians(latitude))
-//             ))`;
-
-//     const restaurants = await FoodRestaurant.findAll({
-//       attributes: {
-//         include: [[Sequelize.literal(distanceQuery), "distance"]],
-//       },
-//       where: Sequelize.literal(`${distanceQuery} < :radius`),
-//       replacements: { latitude, longitude, radius },
-//       order: Sequelize.literal("distance ASC"),
-//     });
-
-//     // Add path to images
-//     restaurants.forEach(restaurant => {
-//       if (restaurant.rimg) {
-//         restaurant.rimg = `uploads/${restaurant.rimg}`;
-//       }
-//       if (restaurant.aadhar_image) {
-//         restaurant.aadhar_image = `uploads/${restaurant.aadhar_image}`;
-//       }
-//     });
-
-//     res.status(200).json({
-//       status: true,
-//       message: "Nearby restaurants fetched successfully",
-//       data: restaurants,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching nearby restaurants:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-
-// Get Diet Packages for a Restaurant
-=======
-
->>>>>>> restaurent_backend
 exports.getNearbyRestaurants = async (req, res) => {
   try {
-    const { latitude, longitude, radius = 5 } = req.query; // Radius in km
+    const { latitude, longitude, radius = 5 } = req.query;
 
     if (!latitude || !longitude) {
-      return res
-        .status(400)
-        .json({ error: "Latitude and Longitude are required" });
+      return res.status(400).json({ error: "Latitude and Longitude are required" });
     }
 
-<<<<<<< HEAD
     const distanceQuery = `
       (6371 * acos(
         cos(radians(:latitude)) * cos(radians(latitude)) *
         cos(radians(longitude) - radians(:longitude)) +
         sin(radians(:latitude)) * sin(radians(latitude))
       ))`;
-=======
+
+    const restaurants = await FoodRestaurant.findAll({
+      attributes: {
+        include: [[Sequelize.literal(distanceQuery), "distance"]],
+      },
+      where: Sequelize.literal(`${distanceQuery} < :radius`),
+      replacements: { latitude, longitude, radius },
+      order: Sequelize.literal("distance ASC"),
+    });
+
+    restaurants.forEach(restaurant => {
+      if (restaurant.rimg) {
+        restaurant.rimg = `uploads/${restaurant.rimg}`;
+      }
+      if (restaurant.aadhar_image) {
+        restaurant.aadhar_image = `uploads/${restaurant.aadhar_image}`;
+      }
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Nearby restaurants fetched successfully",
+      data: restaurants,
+    });
+  } catch (error) {
+    console.error("Error fetching nearby restaurants:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 const distanceQuery = `
   (6371 * acos(
     cos(radians(:latitude)) * cos(radians(\`FoodRestaurant\`.\`latitude\`)) *
@@ -546,7 +594,6 @@ const distanceQuery = `
   ))
 `;
 
->>>>>>> restaurent_backend
 
     const restaurants = await FoodRestaurant.findAll({
       attributes: {
@@ -599,11 +646,6 @@ exports.getRestaurantDietPackage = async (req, res) => {
     });
 
     const restaurantData = restaurant.toJSON();
-<<<<<<< HEAD
-    console.log(restaurantData);
-=======
-
->>>>>>> restaurent_backend
 
     return res.json({
       success: true,
@@ -619,10 +661,6 @@ exports.getRestaurantDietPackage = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> restaurent_backend
 exports.getRestaurantWithMenu = async (req, res) => {
   try {
     const { id } = req.params;
@@ -730,30 +768,19 @@ exports.getRestaurantOrders = async (req, res) => {
     // Count cancelled orders
     const cancelledOrdersCount = formattedOrders.filter(order => order.status === "Rejected").length;
 
-<<<<<<< HEAD
-    // ✅ Total price sum (assuming field name is order_price)
-    const totalOrderPrice = formattedOrders.reduce((sum, order) => {
-      return sum + parseFloat(order.total_amount || 0); // add safely
-    }, 0);
-=======
     // Sum total order price for accepted orders only
     const totalOrderPrice = formattedOrders
       .filter(order => order.status !== "Rejected")
       .reduce((sum, order) => {
         return sum + parseFloat(order.total_amount || 0);
       }, 0);
->>>>>>> restaurent_backend
 
     res.status(200).json({
       status: true,
       message: "Orders for this restaurant",
       count: formattedOrders.length,
       cancelled_count: cancelledOrdersCount,
-<<<<<<< HEAD
-      total_order_price: totalOrderPrice.toFixed(2), // 👈 sum added here
-=======
       total_order_price: totalOrderPrice.toFixed(2), // sum only accepted orders
->>>>>>> restaurent_backend
       data: formattedOrders,
     });
   } catch (error) {
@@ -801,15 +828,9 @@ exports.getDiet = async (req, res) => {
       },
       include: [
         {
-<<<<<<< HEAD
-          model: DietPackage, // Assuming your diet package model is named DietPackage
-          as: "dietPackage", // Alias to match the relationship
-          required: false, // If some restaurants may not have a diet package, this allows those to still be fetched
-=======
           model: DietPackage, 
           as: "dietPackage", 
           required: false,
->>>>>>> restaurent_backend
         },
       ],
     });
@@ -878,53 +899,6 @@ exports.getUsersForRestaurant = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-const JWT_SECRET = "q3tmD1Gp5uTwT2Xk4bZa9V2aHs7pJ9Fz3mQFq0wz";
-
-
-// exports.Restlogin = async (req, res) => {
-//   const { username, password } = req.body;
-
-//   try {
-//     // Mandatory check
-//     if (!username || !password) {
-//       return res.status(400).json({ message: "Username and password are required." });
-//     }
-
-//     // Find restaurant by username
-//     const restaurant = await FoodRestaurant.findOne({ where: { username } });
-
-//     if (!restaurant) {
-//       return res.status(404).json({ message: "Restaurant not found" });
-//     }
-
-  
-//     // Generate JWT token
-//     const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
-//       expiresIn: process.env.TOKEN_EXPIRATION,
-//     });
-
-//     // Return login success response (without password field)
-//     res.status(200).json({
-//       message: "Login successful",
-//       token,
-//       restaurant: {
-//         id: restaurant.id,
-//         username: restaurant.username,
-//         title: restaurant.title,
-//         full_address: restaurant.full_address,
-//         status: restaurant.status,
-//         rating: restaurant.rating,
-//         store_charge: restaurant.store_charge,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Login error:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-=======
->>>>>>> restaurent_backend
 
 
 exports.Restlogin = async (req, res) => {
@@ -951,11 +925,6 @@ exports.Restlogin = async (req, res) => {
     }
 
     // ✅ Generate JWT token
-<<<<<<< HEAD
-    const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.TOKEN_EXPIRATION,
-    });
-=======
    if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
@@ -965,7 +934,6 @@ const token = jwt.sign({ id: restaurant.id }, process.env.JWT_SECRET, {
 });
 
     
->>>>>>> restaurent_backend
 
     // ✅ Return success (excluding password)
     res.status(200).json({
@@ -1037,7 +1005,6 @@ exports.getLoggedInRestaurantOrders = async (req, res) => {
     });
   }
 };
-<<<<<<< HEAD
 exports.addDietPlanToRestaurant = async (req, res) => {
   try {
     const {
@@ -1212,9 +1179,7 @@ exports.addDietPlanToRestaurant = async (req, res) => {
 //     });
 //   }
 // };
-=======
 
->>>>>>> restaurent_backend
 
 exports.userRegistration = async (req, res) => {
   try {
@@ -1389,11 +1354,8 @@ exports.userLogin = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> restaurent_backend
 // Get all users for a specific restaurant
 exports.getUsersByRestaurantId = async (req, res) => {
   const restaurantId = req.params.id;
@@ -1423,8 +1385,6 @@ exports.getUsersByRestaurantId = async (req, res) => {
 };
 
 
-<<<<<<< HEAD
-=======
 exports.addDietPlanToRestaurant = async (req, res) => {
   try {
     const {
@@ -1538,4 +1498,3 @@ exports.getAllDietsByRestaurant = async (req, res) => {
   }
 };
 
->>>>>>> restaurent_backend

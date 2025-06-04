@@ -1,197 +1,167 @@
-<<<<<<< HEAD
-// // const { Model, DataTypes } = require("sequelize");
-// // const sequelize = require("../../../sequelize");
-// // const FoodRestaurant = require("../models/Restaurant");
-// // const DietPackage = require("../models/dietpackage");
-// // const ClientDietPlan = require("./clientdietplan");
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../../../sequelize');
 
-// // class RestaurantDietPackage extends Model {}
-
-// // RestaurantDietPackage.init(
-// //   {
-// //     id: {
-// //       type: DataTypes.INTEGER,
-// //       autoIncrement: true,
-// //       primaryKey: true,
-// //     },
-// //     restaurant_id: {
-// //       type: DataTypes.INTEGER,
-// //       references: {
-// //         model: FoodRestaurant, // The associated restaurant model
-// //         key: 'id', // The key that links to the restaurant model
-// //       },
-// //     },
-// //     diet_plan_id: {
-// //       type: DataTypes.INTEGER,
-// //       references: {
-// //         model: ClientDietPlan, // The associated diet package model
-// //         key: 'id', // The key that links to the diet package model
-// //       },
-// //     },
-// //     status: {
-// //       type: DataTypes.ENUM("pending", "accepted", "rejected"),
-// //       defaultValue: "pending", // Default status is 'pending'
-// //     },
-// //     breakfast_price: {
-// //       type: DataTypes.FLOAT,
-// //       allowNull: true,
-// //     },
-// //     lunch_price: {
-// //       type: DataTypes.FLOAT,
-// //       allowNull: true,
-// //     },
-// //     dinner_price: {
-// //       type: DataTypes.FLOAT,
-// //       allowNull: true,
-// //     },
-// //     combo_price: {
-// //       type: DataTypes.FLOAT,
-// //       allowNull: true,
-// //     },
-// //   },
-// //   {
-// //     sequelize,
-// //     modelName: "RestaurantDietPackage",
-// //     tableName: "restaurant_diet_packages",
-// //     timestamps: false,
-// //   }
-// // );
-
-// // module.exports = RestaurantDietPackage;
-// const { Model, DataTypes } = require("sequelize");
-// const sequelize = require("../../../sequelize");
-// const FoodRestaurant = require("../restaurant/foodRestaurant.model");
-// const ClientDietPlan = require("../dietplan/clientDietPlan.model");
-
-// class RestaurantDietPlan extends Model {}
-
-// RestaurantDietPlan.init(
-//   {
-//     id: {
-//       type: DataTypes.INTEGER,
-//       autoIncrement: true,
-//       primaryKey: true,
-//     },
-//     client_diet_plan_id: {
-//       type: DataTypes.INTEGER,
-//       allowNull: false,
-//     },
-//     restaurant_id: {
-//       type: DataTypes.INTEGER,
-//       allowNull: false,
-//     },
-  
-//     breakfast_price: DataTypes.FLOAT,
-//     lunch_price: DataTypes.FLOAT,
-//     dinner_price: DataTypes.FLOAT,
-//     snacks_price: DataTypes.FLOAT,
-//     combo_price: DataTypes.FLOAT,
-//     optional_item_price: DataTypes.FLOAT,
-//     status: {
-//       type: DataTypes.ENUM("Pending", "Approved", "Rejected"),
-//       defaultValue: "Pending",
-//     },
-//     remark: {
-//       type: DataTypes.TEXT,
-//       allowNull: true,
-//     },
-//   },
-//   {
-//     sequelize,
-//     modelName: "RestaurantDietPlan",
-//     tableName: "restaurant_diet_plans",
-//     underscored: true,
-//     timestamps: true,
-//   }
-// );
-
-// // Associations
-// RestaurantDietPlan.belongsTo(FoodRestaurant, {
-//   foreignKey: "restaurant_id",
-//   as: "restaurant",
-// });
-// RestaurantDietPlan.belongsTo(ClientDietPlan, {
-//   foreignKey: "client_diet_plan_id",
-//   as: "dietPlan",
-// });
-
-// module.exports = RestaurantDietPlan;
-=======
-
->>>>>>> restaurent_backend
-const { Model, DataTypes } = require("sequelize");
-const sequelize = require("../../../sequelize");
-const ClientDietPlan = require("../models/clientdietplan");
+// Models
+const FoodItemOffers = require("../models/ItemOffer");
 const FoodRestaurant = require("../models/Restaurant");
-class RestaurantDietPlan extends Model {}
+const FoodOrders = require("../models/foodOrder");
+const DietPackage = require("./dietpackage");
+const Vendor = require("./Vendor");
+const User = require("../../user/user.model");
+const UserProductAction = require("./userproductaction");
+const ClientDietPlan = require("./clientdietplan");
+const RestaurantDietPackage = require("./restaurentdietpackage");
+const RestaurantSettings = require("./storesetting");
+const RestaurantDietPlan = require("./restaurantdietplan");
 
-RestaurantDietPlan.init(
-  {
+class FoodItem extends Model {}
+
+FoodItem.init({
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    client_diet_plan_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: ClientDietPlan,  // references ClientDietPlan model
-        key: 'id',  // references 'id' in ClientDietPlan
-      },
-      onDelete: 'CASCADE',
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
     },
     restaurant_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'FoodRestaurants',
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
     },
-    breakfast_price: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: FoodRestaurant,  // references ClientDietPlan model
-        key: 'id',  // references 'id' in ClientDietPlan
-      },
-      onDelete: 'CASCADE',
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'FoodCategories',
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
     },
-    lunch_price: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
+    menu_name: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
-    dinner_price: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
+    description: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
-    snacks_price: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
+    menu_img: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
-    combo_price: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
+    price: {
+        type: DataTypes.FLOAT,
+        allowNull: true
     },
-    optional_item_price: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
+    discount: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        defaultValue: 0.0,
+        comment: "Discount in percentage"
     },
-    status: {
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"),
-      allowNull: true,
-      defaultValue: "Pending",
+    total_quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
-    remark: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+    unit: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "e.g. Plate, Bowl, Piece"
     },
-  },
-  {
+    cost_price: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: "Backend purchase cost"
+    },
+    calories: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: "Calories in kcal"
+    },
+    diet_type: {
+        type: DataTypes.ENUM('veg', 'non_veg', 'vegan', 'eggetarian'),
+        allowNull: false,
+        defaultValue: 'veg'
+    },
+    variants: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated variants e.g. Small, Medium, Large"
+    },
+    addons: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated addons e.g. Extra Cheese, Gravy"
+    },
+    spice_level: {
+        type: DataTypes.ENUM('none', 'mild', 'medium', 'hot'),
+        allowNull: false,
+        defaultValue: 'none'
+    },
+    tags: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated tags e.g. Bestseller, Kids"
+    },
+    prep_time: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: "Preparation time in minutes"
+    },
+    available: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        comment: "Availability: true = Available, false = Not Available"
+    },
+    is_recommended: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    rating: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        defaultValue: 0.0
+    },
+    distance: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    ingredients: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "Comma-separated ingredients e.g. rice, jeera, tomato"
+    },
+    cuisine_type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        comment: "Cuisine type e.g. Indian, Chinese"
+    },
+}, {
     sequelize,
-    modelName: "ClientDietPlanRestaurant",
-    tableName: "restaurant_diet_plans",
+    modelName: 'FoodItem',
+    tableName: 'fooditems',
     underscored: true,
-    timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
-  }
-);
-module.exports = RestaurantDietPlan;
+    timestamps: true
+});
+
+// Associations
+FoodItem.hasMany(FoodItemOffers, { foreignKey: "item_id", as: "offers", onDelete: "CASCADE" });
+FoodItemOffers.belongsTo(FoodItem, { foreignKey: "item_id", as: "foodItem", onDelete: "CASCADE" });
+
+FoodItem.belongsTo(FoodRestaurant, {
+    foreignKey: 'restaurant_id',
+    as: 'restaurant',
+    onDelete: 'CASCADE'
+});
+FoodRestaurant.hasMany(FoodItem, {
+    foreignKey: 'restaurant_id',
+    as: 'foodItems',
+    onDelete: 'CASCADE'
+});
+
+module.exports = FoodItem;

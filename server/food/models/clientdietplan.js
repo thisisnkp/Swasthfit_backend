@@ -1,9 +1,9 @@
-
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
 const User = require("../../user/user.model");
 
 class ClientDietPlan extends Model {}
+
 ClientDietPlan.init(
   {
     id: {
@@ -49,15 +49,7 @@ ClientDietPlan.init(
     },
     food_type: {
       type: DataTypes.ENUM("Compulsory", "Optional"),
-<<<<<<< HEAD
-       defaultValue: "Compulsory", //function() {
-      //   // Make snacks optional by default
-      //   return this.meal_type === "Snacks" ? "Optional" : "Compulsory";
-      // },
-=======
-       defaultValue: "Compulsory", 
-     
->>>>>>> restaurent_backend
+      defaultValue: "Compulsory",
     },
     remark: {
       type: DataTypes.TEXT,
@@ -116,24 +108,20 @@ ClientDietPlan.init(
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 0,
-      comment: "For ordering multiple items within the same meal type"
+      comment: "For ordering multiple items within the same meal type",
     },
     is_water_intake: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-    }
+    },
   },
   {
     sequelize,
     modelName: "ClientDietPlan",
     tableName: "client_diet_plans",
     underscored: true,
-<<<<<<< HEAD
     timestamps: true,
-=======
-    timestamps: false,
->>>>>>> restaurent_backend
     createdAt: "created_at",
     updatedAt: "updated_at",
   }

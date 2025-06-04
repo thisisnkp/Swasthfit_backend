@@ -1,109 +1,11 @@
-
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../../../sequelize');
 const FoodItemOffers = require("../models/ItemOffer");
 const FoodRestaurant = require("../models/Restaurant");
 const FoodOrders = require("../models/foodOrder")
+
 class FoodItem extends Model {}
 
-<<<<<<< HEAD
-// FoodItem.init({
-//     id: {
-//         type: DataTypes.INTEGER,
-//         autoIncrement: true,
-//         primaryKey: true
-//     },
-//     restaurant_id: {
-//         type: DataTypes.INTEGER,
-//         allowNull: false,
-//         references: {
-//             model: 'FoodRestaurants', // Make sure this is the correct table name
-//             key: 'id'
-//         },
-//         onUpdate: 'CASCADE',
-//         onDelete: 'CASCADE'
-//     },
-    
-//     category_id: {
-//         type: DataTypes.INTEGER,
-//         allowNull: true,
-//         references: {
-//             model: 'FoodCategories',
-//             key: 'id'
-//         },
-//         onUpdate: 'CASCADE',
-//         onDelete: 'SET NULL'
-//     },
-//     menu_name: {
-//         type: DataTypes.STRING,
-//         allowNull: true
-//     },
-//     description: {
-//         type: DataTypes.STRING,
-//         allowNull: true
-//     },
-//     menu_img: {
-//         type: DataTypes.STRING,
-//         allowNull: true
-//     },
-//     status: {
-//         type: DataTypes.STRING,
-//         defaultValue: 'active'
-//     },
-//     total_quantity: {
-//         type: DataTypes.INTEGER,
-//         allowNull: true
-//     },
-//     price: {
-//         type: DataTypes.FLOAT,
-//         allowNull: true
-//     },
-//     is_veg: {
-//         type: DataTypes.BOOLEAN,
-//         defaultValue: false
-//     },
-//     is_recommended: {
-//         type: DataTypes.BOOLEAN,
-//         defaultValue: false
-//     },
-//     rating: {
-//         type: DataTypes.FLOAT,   
-//         allowNull: true,
-//         defaultValue: 0.0
-//     },
-//     distance: {
-//         type: DataTypes.FLOAT,   
-//         allowNull: true
-//     },
-   
-//     created_by: {
-//         type: DataTypes.STRING,
-//         allowNull: true,
-//     }, 
-//      ingredients: {
-//         type: DataTypes.STRING,  // Store ingredients as comma-separated string
-//         allowNull: true,
-//         comment: "Comma-separated ingredients e.g. rice, jeera, tomato"
-//     },
-//     cuisine_type: {
-//         type: DataTypes.STRING,
-//         allowNull: false,
-//         comment: "Cuisine type e.g. Indian, Chinese, Italian"
-//     },
-// }, {
-//     sequelize,
-//     modelName: 'FoodItem',
-//     tableName: 'fooditems',
-//     underscored: true,
-//     timestamps: true
-// });
-
-
-
-//  Define One-to-Many Relationship
-=======
-
->>>>>>> restaurent_backend
 FoodItem.init({
     id: {
         type: DataTypes.INTEGER,
@@ -201,14 +103,11 @@ FoodItem.init({
         allowNull: true,
         comment: "Preparation time in minutes"
     },
-  
- 
     available: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
         comment: "Availability: true = Available, false = Not Available"
     },
-  
     is_recommended: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
@@ -232,8 +131,6 @@ FoodItem.init({
         allowNull: false,
         comment: "Cuisine type e.g. Indian, Chinese"
     },
-
-
 }, {
     sequelize,
     modelName: 'FoodItem',
@@ -245,8 +142,6 @@ FoodItem.init({
 FoodItem.hasMany(FoodItemOffers, { foreignKey: "item_id", as: "offers", onDelete: "CASCADE" });
 FoodItemOffers.belongsTo(FoodItem, { foreignKey: "item_id", as: "foodItem", onDelete: "CASCADE" });
 
-
-// Many-to-One: A food item belongs to one restaurant
 FoodItem.belongsTo(FoodRestaurant, {
     foreignKey: 'restaurant_id',
     as: 'restaurant',
@@ -258,6 +153,4 @@ FoodRestaurant.hasMany(FoodItem, {
     onDelete: 'CASCADE'
 });
 
-
-  
 module.exports = FoodItem;
