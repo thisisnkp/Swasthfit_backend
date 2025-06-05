@@ -198,11 +198,16 @@ router.get("/transactions/:id", getVendorTransactionsByGymId);
 // apis for email and sms for gym
 
 const {
+  sendEmailController,
+} = require("./controllers/email_sms/smtp.controller");
+router.post("/send-email", sendEmailController);
+
+const {
   getMailSettings,
   upsertMailSettings,
 } = require("./controllers/email_sms/email.controller");
 
-router.get("/getEmailConfig/id", getMailSettings);
+router.get("/getEmailConfig/:id", getMailSettings);
 router.post("/addEmailConfig", upsertMailSettings);
 
 const {
@@ -215,7 +220,7 @@ const {
 
 router.post("/email-templates", createEmailTemplate);
 router.get("/email-templates/:id", getEmailTemplates);
-router.get("/email-templates/:templateId", getEmailTemplateById);
+router.get("/getTemplate/:templateId", getEmailTemplateById);
 router.put("/email-templates/:templateId", updateEmailTemplate);
 router.delete("/email-templates/:templateId", deleteEmailTemplate);
 

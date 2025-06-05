@@ -66,7 +66,6 @@ app.post("/update-recharge-status", marketPayment.updatePaymentStatusWallet);
 
 app.post("/update-payment-status", easebuzzController.updatePaymentStatus);
 
-// Serve Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 require("./server/marketing/postScheduler");
 
@@ -76,8 +75,6 @@ app.get(
     console.log("Initiate Payment API called") ||
     easebuzzController.getAllPayments(req, res, config)
 );
-
-// getAllPayments
 
 app.post("/response", function (req, res) {
   function checkReverseHash(response) {

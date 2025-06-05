@@ -16,7 +16,7 @@ exports.createEmailTemplate = async (req, res) => {
       .status(400)
       .json({ success: false, message: "Gym ID is required in headers." });
   }
-  if (!name || !subject || !description) {
+  if (!name || !description) {
     return res.status(400).json({
       success: false,
       message: "Name, subject, and description are required.",
