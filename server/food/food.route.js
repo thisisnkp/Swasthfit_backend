@@ -339,14 +339,10 @@ router.route("/add-to-fav").post(verifyToken , orderController.addFavoriteItem)
 router
   .route("/invoices/create")
   .post(verifyToken, invoiceController.createInvoice);
-router
-  .route("/invoices/:id")
-  .get(verifyToken, invoiceController.getInvoiceById);
-router.route("/invoice-all").get(verifyToken, invoiceController.getInvoicesAll);
-router
-  .route("/invoice/delete/:id")
-  .delete(verifyToken, invoiceController.deleteInvoice);
 
+  router.route("/invoices-all").get(verifyToken, invoiceController.getAllInvoices)
+router.route("/invoice/:invoice_id").get(verifyToken , invoiceController.getInvoiceWithItems)
+router.route("/invoices/get/:invoiceId").get(verifyToken, invoiceController.getInvoiceByInvoiceId)
 
 /***************** Invoice Section Route End *****************/
 /***************** Promotion Section Route Start *****************/

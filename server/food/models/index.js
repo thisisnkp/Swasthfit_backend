@@ -12,7 +12,9 @@ const UserProductAction = require("./userproductaction");
 const ClientDietPlan = require("./clientdietplan");
 const RestaurantDietPackage = require("./restaurentdietpackage");
 const RestaurantSettings = require('./storesetting');
-const Rider= require("./rider")
+const Rider= require("./rider");
+const Invoice = require('./invoice');
+const InvoiceItem = require('./InvoiceItem');
 // ===================== Associations ===================== //
 
 FoodRestaurant.hasMany(DietPackage, {
@@ -188,6 +190,18 @@ Rider.hasMany(FoodOrders, {
   as: 'orders',
 });
 
+// Define associations here
+Invoice.hasMany(InvoiceItem, {
+  foreignKey: 'invoice_id',
+  sourceKey: 'invoice_id',
+  as: 'items'
+});
+
+InvoiceItem.belongsTo(Invoice, {
+  foreignKey: 'invoice_id',
+  targetKey: 'invoice_id'
+});
+
 // ===================== Export ===================== //
 
 module.exports = {
@@ -200,5 +214,7 @@ module.exports = {
   FoodRestaurant,
   FoodOrders,
   FoodItem,
-  Vendor
+  Vendor,
+  Invoice,
+  InvoiceItem
 };
