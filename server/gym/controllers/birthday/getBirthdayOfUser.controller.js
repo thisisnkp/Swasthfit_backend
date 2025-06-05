@@ -28,8 +28,10 @@ async function getUsersByBirthday(req, res) {
     });
 
     if (!memberships || memberships.length === 0) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        users: [],
         message: "No members found for this gym",
       });
     }
@@ -64,9 +66,12 @@ async function getUsersByBirthday(req, res) {
       ],
     });
 
+    // ✅ If no birthdays today, still return 200 with empty list
     if (!birthdayUsers || birthdayUsers.length === 0) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        users: [],
         message: "No birthdays found for today",
       });
     }

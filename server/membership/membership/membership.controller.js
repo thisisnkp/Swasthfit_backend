@@ -453,15 +453,15 @@ exports.getMembershipByUserId = async (req, res) => {
     const UserId = req.params.UserId;
     console.log("User Id:", UserId); // Debugging line
 
-    // Find the user by email
     const membership = await Membership.findOne({
-      where: { user_id: UserId }, // ✅ Correct usage
+      where: { user_id: UserId },
     });
 
     if (!membership) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: "User not found",
+        data: null,
       });
     }
 

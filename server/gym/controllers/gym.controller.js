@@ -199,7 +199,8 @@ exports.createGym = async (req, res) => {
 
 exports.getUsersByGymId = async (req, res) => {
   try {
-    const  gym_id  = req.params.id; // Assuming gym_id comes from URL parameters
+    const gym_id = req.params.id;
+    console.log("Gym ID:", gym_id); // Debug log
 
     if (!gym_id) {
       return res.status(400).json({

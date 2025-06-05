@@ -68,7 +68,7 @@ app.post("/update-payment-status", easebuzzController.updatePaymentStatus);
 
 // Serve Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-// require("./server/marketing/postScheduler");
+require("./server/marketing/postScheduler");
 
 app.get(
   "/getAllPayments",
