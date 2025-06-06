@@ -12,6 +12,9 @@ const UserProductAction = require("./userproductaction");
 const ClientDietPlan = require("./clientdietplan");
 const RestaurantDietPackage = require("./restaurentdietpackage");
 const RestaurantSettings = require("./storesetting");
+const Rider = require("./rider");
+const Invoice = require("./invoice");
+const InvoiceItem = require("./InvoiceItem");
 
 class FoodItem extends Model {}
 
@@ -148,7 +151,8 @@ FoodItem.init({
     timestamps: true
 });
 
-// Associations
+// ===================== Associations ===================== //
+
 FoodItem.hasMany(FoodItemOffers, { foreignKey: "item_id", as: "offers", onDelete: "CASCADE" });
 FoodItemOffers.belongsTo(FoodItem, { foreignKey: "item_id", as: "foodItem", onDelete: "CASCADE" });
 
@@ -163,4 +167,61 @@ FoodRestaurant.hasMany(FoodItem, {
     onDelete: 'CASCADE'
 });
 
-module.exports = FoodItem;
+RestaurantDietPackage.belongsTo(FoodRestaurant, { foreignKey: "restaurant_id", as: "restaurant" });
+ClientDietPlan.hasMany(RestaurantDietPackage, { foreignKey: "client_diet_plan_id", as: "restaurantPlans" });
+FoodRestaurant.hasMany(RestaurantDietPackage, { foreignKey: "restaurant_id", as: "dietPlanPackages" });
+
+FoodRestaurant.belongsToMany(DietPackage, {
+    through: RestaurantDietPackage,
+    foreignKey: "restaurant_id",
+    otherKey: "client_diet_plan_id",
+    as: "availableDietPlans"
+});
+FoodRestaurant.belongsToMany(DietPackage, {
+    through: RestaurantDietPackage,
+    foreignKey: 'restaurant_id',
+    otherKey: 'client_diet_plan_id',
+    as: 'dietPlans'
+});
+DietPackage.belongsToMany(FoodRestaurant, {
+    through: RestaurantDietPackage,
+    foreignKey: "client_diet_plan_id",
+    otherKey: "restaurant_id",
+    as: "restaurantsOfferingDietPlan"
+});
+DietPackage.belongsToMany(FoodRestaurant, {
+    through: RestaurantDietPackage,
+    foreignKey: 'client_diet_plan_id',
+    otherKey: 'restaurant_id',
+    as: 'restaurants'
+});
+
+User.hasMany(FoodOrders, { foreignKey: 'user_id', as: 'foodOrders' });
+FoodOrders.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasOne(Vendor, { foreignKey: "user_id", as: "vendor" });
+Vendor.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
+FoodRestaurant.hasOne(RestaurantSettings, { foreignKey: 'restaurant_id', as: 'settings', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+RestaurantSettings.belongsTo(FoodRestaurant, { foreignKey: 'restaurant_id', as: 'restaurant' });
+
+FoodOrders.belongsTo(Rider, { foreignKey: 'rider_id', as: 'rider' });
+Rider.hasMany(FoodOrders, { foreignKey: 'rider_id', as: 'orders' });
+
+Invoice.hasMany(InvoiceItem, { foreignKey: 'invoice_id', sourceKey: 'invoice_id', as: 'items' });
+InvoiceItem.belongsTo(Invoice, { foreignKey: 'invoice_id', targetKey: 'invoice_id' });
+
+// ===================== Export ===================== //
+
+module.exports = {
+  sequelize,
+  User,
+  ClientDietPlan,
+  UserProductAction,
+  DietPackage,
+  FoodRestaurant,
+  FoodOrders,
+  FoodItem,
+  Vendor,
+  Invoice,
+  InvoiceItem
+};

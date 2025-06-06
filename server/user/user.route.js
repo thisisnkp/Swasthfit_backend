@@ -27,6 +27,7 @@ router.put('/users/:id', userController.updateUser);
 // Route to fetch user details
 router.get('/profile/:id', userController.getUserDetails);
 
+router.post('/add', userController.addToCart);
 // Export the router
 module.exports = router;
 

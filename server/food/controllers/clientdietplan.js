@@ -3,6 +3,9 @@
 const ClientDietPlan = require("../models/clientdietplan");
 const ClientWorkout = require("../models/ClientWorkout");
 const User = require("../../user/user.model");
+const express = require("express");
+
+const app = express();
 
 // Create a new ClientDietPlan
 exports.createClientDietPlan = async (req, res) => {
@@ -35,32 +38,57 @@ exports.createClientDietPlan = async (req, res) => {
       is_water_intake,
     } = req.body;
 
+    // Validate user_id
     if (!user_id || isNaN(user_id) || parseInt(user_id) <= 0) {
       return res.status(400).json({ message: "Invalid or missing user_id." });
     }
+
+    // Validate trainer_id
     if (!trainer_id || isNaN(trainer_id) || parseInt(trainer_id) <= 0) {
       return res.status(400).json({ message: "Invalid or missing trainer_id." });
     }
 
-    const user = await User.findByPk(user_id);
-    if (!user) return res.status(404).json({ message: "User not found." });
+    // Check if user_id exists
+    const userExists = await User.findByPk(user_id);
+    if (!userExists) {
+      return res.status(404).json({ message: "User ID does not exist." });
+    }
 
-    const trainer = await User.findByPk(trainer_id);
-    if (!trainer) return res.status(404).json({ message: "Trainer not found." });
+    // Check if trainer_id exists
+    const trainerExists = await User.findByPk(trainer_id);
+    if (!trainerExists) {
+      return res.status(404).json({ message: "Trainer ID does not exist." });
+    }
 
+    // Validate non-negative numeric fields
     const numericFields = {
-      quantity, fats, protein, carbs, water_intake,
-      breakfast_price, lunch_price, dinner_price, snacks_price,
-      combo_price, discount_value, plan_days, optional_item_price, meal_order,
+      quantity,
+      quantity_unit,
+      fats,
+      protein,
+      carbs,
+      water_intake,
+      breakfast_price,
+      lunch_price,
+      dinner_price,
+      snacks_price,
+      combo_price,
+      discount_value,
+      plan_days,
+      optional_item_price,
+      meal_order,
     };
 
     for (const [key, value] of Object.entries(numericFields)) {
-      if (value !== undefined && !isNaN(value) && Number(value) < 0) {
+      if (value !== undefined && value !== null && !isNaN(value) && Number(value) < 0) {
         return res.status(400).json({ message: `${key} cannot be negative.` });
       }
     }
 
-    const finalFoodType = meal_type === "Snacks" ? "Optional" : food_type;
+    let finalFoodType = food_type;
+    if (meal_type === "Snacks") {
+      finalFoodType = "Optional";
+    }
 
     const clientDietPlan = await ClientDietPlan.create({
       user_id,
@@ -90,13 +118,16 @@ exports.createClientDietPlan = async (req, res) => {
       is_water_intake,
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Client Diet Plan created successfully",
       data: clientDietPlan,
     });
   } catch (error) {
     console.error("Error creating client diet plan:", error);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({
+      message: "Error creating client diet plan",
+      error: error.message,
+    });
   }
 };
 
@@ -214,7 +245,19 @@ exports.getDietPlansByUserAndTrainer = async (req, res) => {
 // Create Workout
 exports.createClientWorkout = async (req, res) => {
   try {
-    const { user_id, trainer_id, day, body_part, exercise_name, sets, reps, duration_min, remark, media_url, media_type } = req.body;
+    const {
+      user_id,
+      trainer_id,
+      day,
+      body_part,
+      exercise_name,
+      sets,
+      reps,
+      duration_min,
+      remark,
+      media_url,
+      media_type,
+    } = req.body;
 
     const user = await User.findByPk(user_id);
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -222,7 +265,19 @@ exports.createClientWorkout = async (req, res) => {
     const trainer = await User.findByPk(trainer_id);
     if (!trainer) return res.status(404).json({ message: "Trainer not found" });
 
-    const workout = await ClientWorkout.create({ user_id, trainer_id, day, body_part, exercise_name, sets, reps, duration_min, remark, media_url, media_type });
+    const workout = await ClientWorkout.create({
+      user_id,
+      trainer_id,
+      day,
+      body_part,
+      exercise_name,
+      sets,
+      reps,
+      duration_min,
+      remark,
+      media_url,
+      media_type,
+    });
 
     return res.status(201).json({ message: "Workout created successfully", data: workout });
   } catch (error) {

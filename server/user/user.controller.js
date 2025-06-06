@@ -3,7 +3,7 @@ const config = require("../../config");
 const User = require("./user.model"); //user model
 const UserFitData = require("./userfitdata.model"); //user fit model
 const { use } = require("./user.route");
-
+const FoodItem = require("../food/models/FoodItem")
 // login function
 exports.userLogin = async (req, res) => {
   try {
@@ -59,150 +59,6 @@ exports.userLogin = async (req, res) => {
       .json({ status: 500, success: false, message: "Internal server error." });
   }
 };
-
-// exports.userRegistration = async (req, res) => {
-//   try {
-//     const {
-//       user_name,
-//       user_mobile,
-//       user_height,
-//       user_weight,
-//       user_email,
-//       otpless_token,
-//       target_weight,
-//       per_exp,
-//       sickness,
-//       physical_activity,
-//       gender,
-//       fit_goal,
-//       user_aadhar,
-//       user_pan,
-//       user_bank,
-//       user_type,
-//       user_age, // Taking user_age as input
-//     } = req.body;
-
-//     // Validate required fields
-//     if (
-//       !user_mobile ||
-//       !user_height ||
-//       !user_weight ||
-//       !otpless_token ||
-//       !user_age
-//     ) {
-//       return res.status(400).json({
-//         status: 400,
-//         success: false,
-//         message:
-//           "Required fields (user_mobile, user_height, user_weight, otpless_token, user_age) are missing.",
-//       });
-//     }
-
-//     // Ensure that fields expected to be arrays are valid arrays
-//     if (!Array.isArray(per_exp)) {
-//       return res.status(400).json({
-//         status: 401,
-//         success: false,
-//         message: "per_exp must be an array.",
-//       });
-//     }
-//     if (!Array.isArray(sickness)) {
-//       return res.status(400).json({
-//         status: 402,
-//         success: false,
-//         message: "sickness must be an array.",
-//       });
-//     }
-//     if (!Array.isArray(physical_activity)) {
-//       return res.status(400).json({
-//         status: 403,
-//         success: false,
-//         message: "physical_activity must be an array.",
-//       });
-//     }
-//     if (!Array.isArray(fit_goal)) {
-//       return res.status(400).json({
-//         status: 405,
-//         success: false,
-//         message: "fit_goal must be an array.",
-//       });
-//     }
-
-//     // Check if user already exists by user_mobile
-//     const existingUser = await User.findOne({ where: { user_email } });
-
-//     if (existingUser) {
-//       return res.status(400).json({
-//         status: 406,
-//         success: false,
-//         message: "User is already registered with this mail .",
-//       });
-//     }
-
-//     // Create a new user record
-//     const newUser = await User.create({
-//       user_name: user_name || null,
-//       user_mobile,
-//       user_email: user_email ?? null,
-//       user_height,
-//       user_weight,
-//       otpless_token,
-//       user_dob: null, // Since user_age is provided, no need for user_dob here
-//       user_age, // Now we directly store the user_age
-//       user_aadhar: user_aadhar ?? null,
-//       user_pan: user_pan ?? null,
-//       user_address: "",
-//       user_earned_coins: 0,
-//       user_gullak_money_earned: 0,
-//       user_gullak_money_used: 0,
-//       user_competitions: "",
-//       user_type: user_type ?? "normal",
-//       user_social_media_id: "",
-//       user_downloads: 0,
-//       user_ratings: "",
-//       user_qr_code: "",
-//       user_bank: user_bank ?? null,
-//       is_signup: 1,
-//       is_approved: 0,
-//     });
-
-//     // Create a new user fitness data record
-//     const newUserFitData = await UserFitData.create({
-//       user_id: newUser.id,
-//       target_weight: target_weight || 0,
-//       per_exp: per_exp, // Serialized in the model
-//       sickness: sickness, // Serialized in the model
-//       physical_activity: physical_activity, // Serialized in the model
-//       gender: gender || "unknown",
-//       fit_goal: fit_goal, // Serialized in the model
-//     });
-
-//     // Create JWT token
-//     const payload = { userId: newUser.id, user_mobile: newUser.user_mobile }; // Customize as needed
-//     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-//       expiresIn: "1h",
-//     }); // Set the expiration time for the token (1 hour)
-
-//     // Respond with success message and JWT
-//     return res.status(201).json({
-//       status: 200,
-//       success: true,
-//       message: "User registered successfully.",
-//       data: {
-//         user: newUser,
-//         user_fit_data: newUserFitData,
-//         token, // Sending the JWT token
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error during registration: ", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Internal server error.",
-//     });
-//   }
-// };
-
 
 exports.deleteUser = async (req, res) => {
   try {
@@ -368,3 +224,5 @@ exports.getUserDetails = async (req, res) => {
     });
   }
 };
+
+

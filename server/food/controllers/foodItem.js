@@ -4,7 +4,7 @@ const fileUploaderSingle =
 const FoodItemOffer = require("../models/ItemOffer");
 const FoodRestaurant = require("../models/Restaurant");
 const FoodOrders = require("../models/foodOrder");
-const slugify = require('slugify');
+const slugify = require("slugify");
 
 // exports.createfoodItem = async (req, res) => {
 //   console.log(req.body);
@@ -80,51 +80,62 @@ const slugify = require('slugify');
 // };
 
 exports.createfoodItem = async (req, res) => {
+  const io = req.app.get("io");
   try {
     const {
       restaurant_id,
       category_id,
-      menu_name,          // Product Name
-      description,        // Description
-      price,              // Price
-      discount,           // Discount in percentage
-      total_quantity,     // Quantity
-      unit,               // Unit (Plate, Bowl etc.)
-      cost_price,         // Cost price
-      calories,           // Calories
-      diet_type,          // veg, non_veg, vegan, eggetarian
-      variants,           // Small, Medium, Large (comma separated)
-      addons,             // Extra Cheese, Gravy (comma separated)
-      spice_level,        // none, mild, medium, hot
-      tags,               // Bestseller, Kids (comma separated)
-      prep_time,          // Prep time in minutes
+      menu_name, // Product Name
+      description, // Description
+      price, // Price
+      discount, // Discount in percentage
+      total_quantity, // Quantity
+      unit, // Unit (Plate, Bowl etc.)
+      cost_price, // Cost price
+      calories, // Calories
+      diet_type, // veg, non_veg, vegan, eggetarian
+      variants, // Small, Medium, Large (comma separated)
+      addons, // Extra Cheese, Gravy (comma separated)
+      spice_level, // none, mild, medium, hot
+      tags, // Bestseller, Kids (comma separated)
+      prep_time, // Prep time in minutes
 
-      available,          // true/false
-    
-      is_recommended,     // true/false
-      rating,             // float
-      distance,           // float
-      ingredients,        // comma separated
-      cuisine_type,       // Indian, Chinese etc.
-      created_by          // Created By user id
+      available, // true/false
+
+      is_recommended, // true/false
+      rating, // float
+      distance, // float
+      ingredients, // comma separated
+      cuisine_type, // Indian, Chinese etc.
+      created_by, // Created By user id
     } = req.body;
 
     // Validate required fields
-    if (!restaurant_id || !category_id || !menu_name || !description || !price || !cuisine_type ) {
+    if (
+      !restaurant_id ||
+      !category_id ||
+      !menu_name ||
+      !description ||
+      !price ||
+      !cuisine_type
+    ) {
       return res.status(400).json({ message: "Required fields are missing" });
     }
 
     // Handle image upload
     let uploadedImage;
     if (req.files && req.files.menu_img) {
-      uploadedImage = await fileUploaderSingle("./public/uploads/", req.files.menu_img);
+      uploadedImage = await fileUploaderSingle(
+        "./public/uploads/",
+        req.files.menu_img,
+      );
     }
 
     // Convert is_veg to boolean (in case string is passed)
     let isVegBoolean = false;
-    if (typeof is_veg === 'string') {
-      isVegBoolean = is_veg.toLowerCase() === 'veg' ? true : false;
-    } else if (typeof is_veg === 'boolean') {
+    if (typeof is_veg === "string") {
+      isVegBoolean = is_veg.toLowerCase() === "veg" ? true : false;
+    } else if (typeof is_veg === "boolean") {
       isVegBoolean = is_veg;
     }
 
@@ -145,21 +156,27 @@ exports.createfoodItem = async (req, res) => {
       unit,
       cost_price,
       calories,
-      diet_type: diet_type || 'veg',
+      diet_type: diet_type || "veg",
       variants,
       addons,
-      spice_level: spice_level || 'none',
+      spice_level: spice_level || "none",
       tags,
       prep_time,
-    
       available: available === undefined ? true : available,
-     
       is_recommended: is_recommended || false,
       rating: rating || 0.0,
       distance,
       ingredients,
       cuisine_type,
-      created_by
+      created_by,
+    });
+
+    io.emit("notification", {
+      type: "Product",
+      message: `New product (${foodItem.menu_name || foodItem.id}) created by User ${created_by}`,
+      timestamp: new Date().toISOString(),
+      product_id: foodItem.id,
+      user_id: created_by,
     });
 
     // Full image URL
@@ -176,7 +193,9 @@ exports.createfoodItem = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating food item:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -185,7 +204,7 @@ exports.getFoodItems = async (req, res) => {
     const foodItems = await FoodItem.findAll();
 
     // Correct Base URL
-    const baseUrl = `http://localhost:4001/uploads/`;  // 👈 this matches your folder structure
+    const baseUrl = `http://localhost:4001/uploads/`; // 👈 this matches your folder structure
 
     // Add correct image URL to each item
     const updatedItems = foodItems.map((item) => {
@@ -333,23 +352,23 @@ exports.deleteFoodItemById = async (req, res) => {
   const { food_item_id } = req.params; // Get the food_item_id from the request parameters
 
   try {
-      // Find the FoodItem instance using the food_item_id
-      const foodItem = await FoodItem.findOne({
-          where: { id: food_item_id }
-      });
+    // Find the FoodItem instance using the food_item_id
+    const foodItem = await FoodItem.findOne({
+      where: { id: food_item_id },
+    });
 
-      // If no food item found, return an error
-      if (!foodItem) {
-          return res.status(404).json({ message: 'Food item not found' });
-      }
+    // If no food item found, return an error
+    if (!foodItem) {
+      return res.status(404).json({ message: "Food item not found" });
+    }
 
-      // Optionally, delete the food item itself
-      await foodItem.destroy();
+    // Optionally, delete the food item itself
+    await foodItem.destroy();
 
-      return res.status(200).json({ message: 'Food item deleted successfully' });
+    return res.status(200).json({ message: "Food item deleted successfully" });
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Server error' });
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -463,65 +482,9 @@ exports.getAllFoodItemsWithOrders = async (req, res) => {
     });
   }
 };
-exports.addToCart = async (req, res) => {
-    const { user_id, item_id, quantity } = req.body;
-
-    // Validate input
-    if (!user_id || !item_id || !quantity) {
-        return res.status(400).json({ message: "user_id, item_id, and quantity are required" });
-    }
-
-    try {
-        // 1. Check if item exists
-        const foodItem = await FoodItem.findByPk(item_id);
-        if (!foodItem) {
-            return res.status(404).json({ message: "Food item not found" });
-        }
-
-        // 2. Find or Create a "cart" order for user (status = cart)
-        let [order, created] = await FoodOrders.findOrCreate({
-            where: { user_id: user_id, status: "cart" },
-            defaults: {
-                user_id: user_id,
-                status: "cart"
-            }
-        });
-
-        // 3. Check if this item is already in cart (same order)
-        let cartItem = await OrderItems.findOne({
-            where: {
-                order_id: order.id,
-                item_id: item_id
-            }
-        });
-
-        if (cartItem) {
-            // Item already in cart → increment quantity
-            cartItem.quantity += quantity;
-            await cartItem.save();
-        } else {
-            // New item → add to cart
-            await OrderItems.create({
-                order_id: order.id,
-                item_id: item_id,
-                quantity: quantity,
-                price: foodItem.price   // Store price at time of add
-            });
-        }
-
-        return res.status(200).json({ message: "Item added to cart successfully" });
-
-    } catch (error) {
-        console.error("Add to cart error:", error);
-        return res.status(500).json({ message: "Something went wrong", error: error.message });
-    }
-};
 
 
-
-// updated code 
-
-
+// updated code
 
 // CREATE FoodItem
 
@@ -552,7 +515,6 @@ exports.addToCart = async (req, res) => {
 //         return res.status(500).json({ message: 'Error creating Food Item', error: error.message });
 //     }
 // };
-
 
 // exports.createFoodItem = async (req, res) => {
 //     try {
@@ -625,55 +587,70 @@ exports.addToCart = async (req, res) => {
 
 // GET all FoodItems
 exports.getAllFoodItems = async (req, res) => {
-    try {
-        const foodItems = await FoodItem.findAll();
-        return res.status(200).json({ data: foodItems });
-    } catch (error) {
-        console.error('Error fetching Food Items:', error);
-        return res.status(500).json({ message: 'Error fetching Food Items', error: error.message });
-    }
+  try {
+    const foodItems = await FoodItem.findAll();
+    return res.status(200).json({ data: foodItems });
+  } catch (error) {
+    console.error("Error fetching Food Items:", error);
+    return res
+      .status(500)
+      .json({ message: "Error fetching Food Items", error: error.message });
+  }
 };
 
 // GET single FoodItem by ID
 exports.getFoodItemById = async (req, res) => {
-    try {
-        const foodItem = await FoodItem.findByPk(req.params.id);
-        if (!foodItem) {
-            return res.status(404).json({ message: 'Food Item not found' });
-        }
-        return res.status(200).json({ data: foodItem });
-    } catch (error) {
-        console.error('Error fetching Food Item:', error);
-        return res.status(500).json({ message: 'Error fetching Food Item', error: error.message });
+  try {
+    const foodItem = await FoodItem.findByPk(req.params.id);
+    if (!foodItem) {
+      return res.status(404).json({ message: "Food Item not found" });
     }
+    return res.status(200).json({ data: foodItem });
+  } catch (error) {
+    console.error("Error fetching Food Item:", error);
+    return res
+      .status(500)
+      .json({ message: "Error fetching Food Item", error: error.message });
+  }
 };
 
 // UPDATE FoodItem by ID
 exports.updateFoodItem = async (req, res) => {
-    try {
-        const foodItem = await FoodItem.findByPk(req.params.id);
-        if (!foodItem) {
-            return res.status(404).json({ message: 'Food Item not found' });
-        }
-        await foodItem.update(req.body);
-        return res.status(200).json({ message: 'Food Item updated successfully', data: foodItem });
-    } catch (error) {
-        console.error('Error updating Food Item:', error);
-        return res.status(500).json({ message: 'Error updating Food Item', error: error.message });
+  try {
+    const foodItem = await FoodItem.findByPk(req.params.id);
+    if (!foodItem) {
+      return res.status(404).json({ message: "Food Item not found" });
     }
+    await foodItem.update(req.body);
+    return res
+      .status(200)
+      .json({ message: "Food Item updated successfully", data: foodItem });
+  } catch (error) {
+    console.error("Error updating Food Item:", error);
+    return res
+      .status(500)
+      .json({ message: "Error updating Food Item", error: error.message });
+  }
 };
 
 // DELETE FoodItem by ID
 exports.deleteFoodItem = async (req, res) => {
-    try {
-        const foodItem = await FoodItem.findByPk(req.params.id);
-        if (!foodItem) {
-            return res.status(404).json({ message: 'Food Item not found' });
-        }
-        await foodItem.destroy();
-        return res.status(200).json({ message: 'Food Item deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting Food Item:', error);
-        return res.status(500).json({ message: 'Error deleting Food Item', error: error.message });
+  try {
+    const foodItem = await FoodItem.findByPk(req.params.id);
+    if (!foodItem) {
+      return res.status(404).json({ message: "Food Item not found" });
     }
+    await foodItem.destroy();
+    return res.status(200).json({ message: "Food Item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting Food Item:", error);
+    return res
+      .status(500)
+      .json({ message: "Error deleting Food Item", error: error.message });
+  }
 };
+
+
+
+
+
