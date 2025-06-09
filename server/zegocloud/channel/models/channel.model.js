@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../../../sequelize"); // Adjust path to your Sequelize instance
+const sequelize = require("../../../../sequelize"); // Adjust path to your Sequelize instance
 
 const Channel = sequelize.define("Channel", {
   channelName: { type: DataTypes.STRING, allowNull: false, unique: true },

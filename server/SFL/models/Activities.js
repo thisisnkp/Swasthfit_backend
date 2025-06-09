@@ -1,6 +1,7 @@
 // models/Activity.js
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize"); // Adjust the path as needed
+const { combineTableNames } = require("sequelize/lib/utils");
 
 const Activity = sequelize.define(
   "Activity",
@@ -28,11 +29,11 @@ const Activity = sequelize.define(
       allowNull: true,
     },
     scan_rewards: {
-      type: DataTypes.JSON,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     streak_bonuses: {
-      type: DataTypes.JSON,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     category: {
@@ -41,6 +42,7 @@ const Activity = sequelize.define(
     },
   },
   {
+    tableName: "activities",
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",

@@ -1,5 +1,5 @@
 const TrainerHiringData = require("./payment.model");
-const Trainer = require("../user/trainer.model");
+const Trainer = require("../user/models/trainer.model");
 const TrainersAllPayments = require("./trainersAllPayments.model");
 
 const hireTrainer = async (req, res) => {

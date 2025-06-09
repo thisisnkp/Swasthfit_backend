@@ -121,7 +121,7 @@ const logHealthActivity = async (req, res) => {
       return res.status(404).json({ message: "Activity not found" });
     }
 
-    // 🛑 Check if already logged today
+    //  Check if already logged today
     const alreadyLogged = await UserActivity.findOne({
       where: {
         user_id,
@@ -263,9 +263,9 @@ const addActivity = async (req, res) => {
       name,
       base_coin_value,
       daily_target,
-      streak_bonuses,
+      streak_bonuses: JSON.stringify(streak_bonuses),
       category,
-      scan_rewards,
+      scan_rewards: scan_rewards ? JSON.stringify(scan_rewards) : null,
     });
 
     res.status(201).json(activity);
@@ -277,7 +277,15 @@ const addActivity = async (req, res) => {
 const updateActivity = async (req, res) => {
   try {
     const { activity_id } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    if (updates.streak_bonuses && typeof updates.streak_bonuses === "object") {
+      updates.streak_bonuses = JSON.stringify(updates.streak_bonuses);
+    }
+
+    if (updates.scan_rewards && typeof updates.scan_rewards === "object") {
+      updates.scan_rewards = JSON.stringify(updates.scan_rewards);
+    }
 
     const [updated] = await Activity.update(updates, {
       where: { id: activity_id },

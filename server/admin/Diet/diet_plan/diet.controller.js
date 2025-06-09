@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 const dietModel = require("./diet.model");
-const trainerModel = require("../../../user/trainer.model"); // Adjust path accordingly
-const userModel = require("../../../user/user.model"); // Adjust path accordingly
+const trainerModel = require("../../../user/models/trainer.model"); // Adjust path accordingly
+const userModel = require("../../../user/models/user.model"); // Adjust path accordingly
 
 exports.suggestDiet = async (req, res) => {
   try {
@@ -102,7 +102,7 @@ exports.suggestDiet = async (req, res) => {
     );
 
     // Create the diet suggestion record in the diets table
-  const data =  await dietModel.create({
+    const data = await dietModel.create({
       id: uuidv4(),
       trainer_id: dietData.trainer_id, // Trainer suggesting the diet
       user_id: dietData.user_id, // Client receiving the diet suggestion
@@ -118,7 +118,6 @@ exports.suggestDiet = async (req, res) => {
       created_at: new Date(),
     });
 
-
     return res.status(200).json({
       meta: {
         "correlation-id": correlationId,
@@ -126,7 +125,8 @@ exports.suggestDiet = async (req, res) => {
         message: "Operation successful",
       },
       data: {
-        status: "Diet successfully suggested",data:data
+        status: "Diet successfully suggested",
+        data: data,
       },
     });
   } catch (error) {

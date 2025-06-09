@@ -1,74 +1,21 @@
-const Trainer = require("./trainer.model");
-const User = require("./user.model");
 const jwt = require("jsonwebtoken");
+const config = require("../../config");
 const bcrypt = require("bcrypt");
+const User = require("./models/user.model");
+const Trainer = require("./models/trainer.model");
 const { Op } = require("sequelize");
-const Otp = require("./otp.model")(
-  require("../../sequelize"),
-  require("sequelize").DataTypes
-);
+const {
+  fileUploaderSingle,
+  fileUploaderMultiple,
+} = require("../../fileUpload");
+
+const nodemailer = require("nodemailer");
+const otpModel = require("./models/otp.model");
+const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../../sequelize");
-const axios = require("axios");
+const Otp = otpModel(sequelize, DataTypes);
 
-// Function to send OTP via Otpless API
-async function sendOtpViaOtpless(user_mobile, otpCode) {
-  try {
-    const otplessApiUrl = process.env.OTPLESS_API_URL;
-    const apiKey = process.env.OTPLESS_CLIENT_SECRET;
-
-    const response = await axios.post(
-      otplessApiUrl,
-      {
-        mobile: user_mobile,
-        otp: otpCode,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("Error sending OTP via Otpless API:", error);
-    throw error;
-  }
-}
-
-// Existing functions
-exports.getTrainerById = async (req, res) => {
-  try {
-    const trainerId = req.params.id;
-    const trainer = await Trainer.findByPk(trainerId);
-
-    if (!trainer) {
-      return res.status(404).json({ message: "Trainer not found" });
-    }
-
-    return res.status(200).json({ data: trainer });
-  } catch (error) {
-    console.error("Error fetching trainer:", error);
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
-  }
-};
-
-exports.getAllTrainers = async (req, res) => {
-  try {
-    const trainers = await Trainer.findAll();
-    return res.status(200).json({ data: trainers });
-  } catch (error) {
-    console.error("Error fetching trainers:", error);
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
-  }
-};
-
-// New trainer registration function with OTP integration
+// New trainer registration function
 exports.trainerRegistration = async (req, res) => {
   try {
     const { user_email, user_mobile, password, user_type } = req.body;
@@ -101,13 +48,14 @@ exports.trainerRegistration = async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user with user_type trainer
+    // Create new user with user_type trainer and set is_signup to true
     const newUser = await User.create({
       user_name: user_email, // Set user_name to email to satisfy not-null constraint
       user_email,
       user_mobile,
       password: hashedPassword,
       user_type,
+      is_signup: true,
     });
 
     // Create empty Trainer record for this user
@@ -136,26 +84,37 @@ exports.trainerRegistration = async (req, res) => {
       wallet_id: generateWalletId(),
     });
 
-    // Generate OTP code (6 digit random number)
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit OTP
+    const otp_code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Set OTP expiration time (e.g., 10 minutes from now)
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    // Set OTP expiration time (5 minutes from now)
+    const expires_at = new Date(Date.now() + 5 * 60 * 1000);
 
-    // Store OTP in database
+    // Save OTP record in database
     await Otp.create({
-      user_id: newUser.id.toString(),
-      otp_code: otpCode,
-      expires_at: expiresAt,
+      user_id: newUser.id,
+      otp_code,
+      expires_at,
       verified: false,
     });
 
-    // TODO: Integrate Otpless API to send OTP to user_mobile or user_email
-    // Placeholder for sending OTP via Otpless API
-    // sendOtpViaOtpless(user_mobile, otpCode);
-    console.log(
-      `Send OTP ${otpCode} to user ${user_mobile} or ${user_email} via Otpless API`
-    );
+    // Send OTP via email using nodemailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user_email,
+      subject: "Your OTP Code",
+      text: `Your OTP code is: ${otp_code}`,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -164,11 +123,11 @@ exports.trainerRegistration = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // Return success response with token and message about OTP sent
+    // Return success response indicating OTP sent
     return res.status(200).json({
       status: 200,
       success: true,
-      message: "Trainer registered successfully. OTP sent for verification.",
+      message: "Trainer registered successfully. OTP sent to email.",
       data: newUser,
       token,
     });
@@ -184,76 +143,165 @@ exports.trainerRegistration = async (req, res) => {
   }
 };
 
-// OTP verification endpoint
-// OTP verification endpoint that extracts user_id from token
-exports.verifyOtp = async (req, res) => {
+function generateWalletId() {
+  // Generates a 10-digit random number as a string
+  return Math.floor(1000000000 + Math.random() * 90000000).toString();
+}
+
+// Update trainer profile
+exports.updateTrainerProfile = async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({
-        status: 401,
-        success: false,
-        message: "Authorization header missing",
-      });
+    const userId = req.user.id; // Set by verifyJWT middleware
+
+    // Find the trainer by user_id
+    const trainer = await Trainer.findOne({ where: { user_id: userId } });
+    if (!trainer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Trainer not found" });
     }
 
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({
-        status: 401,
-        success: false,
-        message: "Token missing",
-      });
-    }
+    // Prepare update data
+    const updateData = {
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      expertise: req.body.expertise,
+      experience: req.body.experience,
+      address: req.body.address,
+      bank_account_no: req.body.bank_account_no,
+      ifsc_code: req.body.ifsc_code,
+      days: Array.isArray(req.body.days)
+        ? req.body.days.join(",")
+        : req.body.days, // store as comma-separated string if needed
+      time_slot: Array.isArray(req.body.time_slot)
+        ? req.body.time_slot.join(",")
+        : req.body.time_slot,
+      trainerType: req.body.trainerType,
+      client_bio: req.body.client_bio,
+      client_price: req.body.client_price,
+      client_quote: req.body.client_quote,
+      diet_and_workout_details: req.body.diet_and_workout_details
+        ? JSON.stringify(req.body.diet_and_workout_details)
+        : null,
+      profile_photo: req.body.profile_photo,
+      transformation_photos: Array.isArray(req.body.transformation_photos)
+        ? req.body.transformation_photos.join(",")
+        : req.body.transformation_photos,
+      aadhar_details: req.body.aadhar_details,
+      pan_details: req.body.pan_details,
+    };
 
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({
-        status: 401,
-        success: false,
-        message: "Invalid token",
-      });
-    }
-
-    const user_id = decoded.userId;
-    const { otp_code } = req.body;
-
-    if (!otp_code) {
-      return res.status(400).json({
-        status: 400,
-        success: false,
-        message: "otp_code is required",
-      });
-    }
-
-    const otpRecord = await Otp.findOne({
-      where: {
-        user_id: user_id.toString(),
-        otp_code,
-        verified: false,
-        expires_at: { [Op.gt]: new Date() },
-      },
+    // Remove undefined fields (so only provided fields are updated)
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] === undefined) delete updateData[key];
     });
 
-    if (!otpRecord) {
-      return res.status(400).json({
-        status: 400,
-        success: false,
-        message: "Invalid or expired OTP",
-      });
-    }
-
-    await otpRecord.update({ verified: true });
+    // Update the trainer
+    await trainer.update(updateData);
 
     return res.status(200).json({
-      status: 200,
       success: true,
-      message: "OTP verified successfully",
+      message: "Trainer profile updated successfully",
+      data: trainer,
     });
   } catch (error) {
-    console.error("Error verifying OTP:", error);
+    console.error("Error updating trainer profile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Get all trainers or dietitians
+exports.getAllTrainers = async (req, res) => {
+  try {
+    const { trainerType } = req.query; // "trainer" or "dietitian"
+    // Exclude trainers with trainerType "junior trainer"
+    const where = trainerType
+      ? { trainerType: trainerType, trainerType: { [Op.ne]: "junior trainer" } }
+      : { trainerType: { [Op.ne]: "junior trainer" } };
+    const trainers = await Trainer.findAll({ where });
+    // Include trainerType in the response explicitly if missing
+    const trainersWithType = trainers.map((trainer) => {
+      return {
+        ...trainer.dataValues,
+        trainerType: trainer.trainerType || "",
+      };
+    });
+    return res.status(200).json({ success: true, data: trainersWithType });
+  } catch (error) {
+    console.error("Error fetching trainers:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Add this new endpoint to get trainer photos
+exports.getTrainerPhotos = async (req, res) => {
+  try {
+    const { trainerId } = req.params;
+
+    const trainer = await Trainer.findOne({
+      where: { user_id: trainerId },
+      attributes: ["profile_photo", "transformation_photos"],
+    });
+
+    if (!trainer) {
+      return res.status(404).json({
+        success: false,
+        message: "Trainer not found",
+      });
+    }
+
+    // Construct full URLs for the photos
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+    // Parse transformation_photos if it exists
+    const transformationPhotos = trainer.transformation_photos
+      ? JSON.parse(trainer.transformation_photos)
+      : [];
+
+    const response = {
+      profile_photo: trainer.profile_photo
+        ? `${baseUrl}/uploads/trainers/profile/${trainer.profile_photo}`
+        : null,
+      transformation_photos: transformationPhotos.map(
+        (photo) => `${baseUrl}/uploads/trainers/transformations/${photo}`
+      ),
+    };
+
+    res.status(200).json({
+      success: true,
+      data: response,
+    });
+  } catch (error) {
+    console.error("Error fetching trainer photos:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+exports.getTrainerById = async (req, res) => {
+  try {
+    const trainerId = req.params.id;
+    const trainer = await Trainer.findByPk(trainerId);
+
+    if (!trainer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Trainer not found" });
+    }
+
+    return res.status(200).json({ success: true, data: trainer });
+  } catch (error) {
+    console.error("Error fetching trainer:", error);
     return res.status(500).json({
       status: 500,
       success: false,
@@ -263,8 +311,3 @@ exports.verifyOtp = async (req, res) => {
     });
   }
 };
-
-function generateWalletId() {
-  // Generates a 10-digit random number as a string
-  return Math.floor(1000000000 + Math.random() * 90000000).toString();
-}

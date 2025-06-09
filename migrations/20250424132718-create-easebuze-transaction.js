@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('easebuzz_payment', {
+    await queryInterface.createTable("easebuzz_payment", {
       id: {
         type: Sequelize.BIGINT.UNSIGNED,
         autoIncrement: true,
@@ -16,11 +16,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'users', // Ensure this references the correct table name
-          key: 'id',
+          model: "users", // Ensure this references the correct table name
+          key: "id",
         },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       amount: {
         type: Sequelize.FLOAT,
@@ -126,6 +126,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('easebuzz_payment');
-  }
+    await queryInterface.dropTable("easebuzz_payment");
+  },
 };

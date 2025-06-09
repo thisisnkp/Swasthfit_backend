@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize"); // Import Sequelize instance
-const User = require("../../user/user.model");
+const User = require("../../user/models/user.model");
 const Membership = sequelize.define(
   "Membership",
   {
@@ -62,7 +62,5 @@ const Membership = sequelize.define(
     updatedAt: "updated_at",
   }
 );
-
-
 
 module.exports = Membership;

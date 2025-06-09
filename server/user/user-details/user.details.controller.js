@@ -1,4 +1,4 @@
-const UserDetails = require("../userDetails.model");
+const UserDetails = require("../models/userDetails.model");
 
 // Function to get user details by userId
 exports.getUserDetailsByUserId = async (req, res) => {

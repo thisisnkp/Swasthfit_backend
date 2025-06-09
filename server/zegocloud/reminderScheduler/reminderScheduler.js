@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const { Op } = require("sequelize");
-const Channel = require("../channel/channel.model");
+const Channel = require("../channel/models/channel.model");
+
 // const sendEmail = require("./sendEmail");
 // const sendInAppNotification = require("./sendEmail");
 

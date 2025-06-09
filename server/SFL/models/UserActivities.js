@@ -36,6 +36,7 @@ const UserActivity = sequelize.define(
     },
   },
   {
+    tableName: "user_activities",
     timestamps: true,
     createdAt: "created_at",
     updatedAt: false,

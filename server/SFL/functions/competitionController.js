@@ -19,6 +19,7 @@ const createCompetition = async (req, res) => {
   }
 };
 
+// competitionController.js
 const createPrize = async (req, res) => {
   try {
     const { competition_name, label, prize, qualifying_points, no_of_claims } =
@@ -31,7 +32,15 @@ const createPrize = async (req, res) => {
       });
     }
 
+    const competition = await Competition.findOne({
+      where: { name: competition_name },
+    });
+    if (!competition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+
     const newPrize = await CompetitionPrize.create({
+      competition_id: competition.id,
       competition_name,
       label,
       prize,
@@ -104,7 +113,6 @@ const checkWinners = async (req, res) => {
   try {
     const { competition_id } = req.body;
 
-    // First get the competition to get its name
     const competition = await Competition.findByPk(competition_id);
     if (!competition) {
       return res.status(404).json({ message: "Competition not found" });
@@ -112,11 +120,11 @@ const checkWinners = async (req, res) => {
 
     const participants = await CompetitionParticipation.findAll({
       where: { competition_id },
-      order: [["coins_earned", "DESC"]], // Order by coins earned to get top performers
+      order: [["coins_earned", "DESC"]],
     });
 
     const prizes = await CompetitionPrize.findAll({
-      where: { competition_name: competition.name }, // Use competition name instead of ID
+      where: { competition_id: competition.id }, // Use competition_id
     });
 
     if (prizes.length === 0) {

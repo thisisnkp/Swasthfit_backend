@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
-const User = require("../../user/user.model");
+const User = require("../../user/models/user.model");
 
 const EasebuzzPayment = sequelize.define(
   "easebuzz_payment",

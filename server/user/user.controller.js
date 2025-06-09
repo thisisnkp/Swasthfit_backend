@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 const config = require("../../config");
 const bcrypt = require("bcrypt");
-const User = require("./user.model"); //user model
-const UserFitData = require("./userfitdata.model"); //user fit model
-const Trainer = require("./trainer.model"); // Ensure this is declared only once
-const UserDetails = require("./userDetails.model");
+const User = require("./models/user.model"); //user model
+const UserFitData = require("./models/userfitdata.model"); //user fit model
+const Trainer = require("./models/trainer.model"); // Ensure this is declared only once
+const UserDetails = require("./models/userDetails.model");
 const { use } = require("./user.route");
 const { Op } = require("sequelize");
 
@@ -16,45 +16,44 @@ const {
 // login function
 exports.userLogin = async (req, res) => {
   try {
-    const { email, password, user_type } = req.body;
+    const { email, password } = req.body;
 
     // Validate input
-    if (user_type === "trainer") {
-      if (!email || !password) {
-        return res.status(400).json({
-          status: 400,
-          success: false,
-          message: "Email and password are required for trainer login.",
-        });
-      }
-    } else {
-      if (!req.body.mobileNumber) {
-        return res.status(400).json({
-          status: 400,
-          success: false,
-          message: "Mobile number is required.",
-        });
-      }
-    }
-
-    let user;
-
-    if (user_type === "trainer") {
-      // For trainers, find user by email in User table
-      user = await User.findOne({
-        where: { user_email: email, user_type: "trainer" },
-      });
-    } else {
-      // For other users, find by mobile number and user_type in the Users table
-      user = await User.findOne({
-        where: { user_mobile: req.body.mobileNumber, user_type: user_type },
+    if (!email || !password) {
+      return res.status(400).json({
+        status: 400,
+        success: false,
+        message: "Email and password are required.",
       });
     }
+
+    // Find user by email
+    const user = await User.findOne({
+      where: { user_email: email },
+    });
 
     if (!user) {
       return res
         .status(404)
         .json({ status: 404, success: false, message: "User not found." });
+    }
+
+    // Check if user_type is one of the trainer/staff types
+    const trainerTypes = ["trainer", "swasthfit staff", "junior trainer"];
+    const isTrainerType = trainerTypes.includes(user.user_type);
+
+    // For non-trainers/staff, check approval and signup status
+    if (!isTrainerType) {
+      if (!user.is_approved) {
+        return res
+          .status(404)
+          .json({ status: 300, success: false, message: "User not approved" });
+      }
+      if (!user.is_signup) {
+        return res
+          .status(404)
+          .json({ status: 401, success: false, message: "User can't signup" });
+      }
     }
 
     // Create user_details entry if not exists
@@ -68,27 +67,13 @@ exports.userLogin = async (req, res) => {
     console.log("User password hash:", user.password);
 
     // Verify password using bcrypt
-    // const passwordMatch = await bcrypt.compare(password, user.password);
-    // if (!passwordMatch) {
-    //   return res.status(401).json({
-    //     status: 401,
-    //     success: false,
-    //     message: "Invalid password.",
-    //   });
-    // }
-
-    // For non-trainers, check approval and signup status
-    if (user_type !== "trainer") {
-      if (!user.is_approved) {
-        return res
-          .status(404)
-          .json({ status: 300, success: false, message: "User not approved" });
-      }
-      if (!user.is_signup) {
-        return res
-          .status(404)
-          .json({ status: 401, success: false, message: "User can't signup" });
-      }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({
+        status: 401,
+        success: false,
+        message: "Invalid password.",
+      });
     }
 
     // Prepare payload with correct mobile number field
@@ -222,7 +207,7 @@ function generateWalletId() {
 exports.updateTrainerProfile = async (req, res) => {
   try {
     const userId = req.user.id; // Set by verifyJWT middleware
-    const Trainer = require("./trainer.model");
+    const Trainer = require("./models/trainer.model");
 
     // Find the trainer by user_id
     const trainer = await Trainer.findOne({ where: { user_id: userId } });
@@ -529,9 +514,17 @@ exports.userRegistration = async (req, res) => {
 exports.getAllTrainers = async (req, res) => {
   try {
     const { trainerType } = req.query; // "trainer" or "dietitian"
-    const where = trainerType ? { trainerType } : {};
-    const trainers = await require("./trainer.model").findAll({ where });
-    return res.status(200).json({ success: true, data: trainers });
+    // Include all trainers regardless of trainerType
+    const where = trainerType ? { trainerType: trainerType } : {};
+    const trainers = await require("./models/trainer.model").findAll({ where });
+    // Include trainerType in the response explicitly if missing
+    const trainersWithType = trainers.map((trainer) => {
+      return {
+        ...trainer.dataValues,
+        trainerType: trainer.trainerType || "",
+      };
+    });
+    return res.status(200).json({ success: true, data: trainersWithType });
   } catch (error) {
     console.error("Error fetching trainers:", error);
     return res.status(500).json({
@@ -553,7 +546,7 @@ exports.bookTrainer = async (req, res) => {
         .json({ success: false, message: "trainerId is required." });
     }
 
-    const user = await require("./user.model").findByPk(userId);
+    const user = await require("./models/user.model").findByPk(userId);
     if (!user)
       return res
         .status(404)
@@ -821,53 +814,6 @@ exports.getUserByEmail = async (req, res) => {
   } catch (error) {
     console.error("Error fetching user details:", error);
     return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
-
-// Add this new endpoint to get trainer photos
-exports.getTrainerPhotos = async (req, res) => {
-  try {
-    const { trainerId } = req.params;
-
-    const trainer = await Trainer.findOne({
-      where: { user_id: trainerId },
-      attributes: ["profile_photo", "transformation_photos"],
-    });
-
-    if (!trainer) {
-      return res.status(404).json({
-        success: false,
-        message: "Trainer not found",
-      });
-    }
-
-    // Construct full URLs for the photos
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-
-    // Parse transformation_photos if it exists
-    const transformationPhotos = trainer.transformation_photos
-      ? JSON.parse(trainer.transformation_photos)
-      : [];
-
-    const response = {
-      profile_photo: trainer.profile_photo
-        ? `${baseUrl}/uploads/trainers/profile/${trainer.profile_photo}`
-        : null,
-      transformation_photos: transformationPhotos.map(
-        (photo) => `${baseUrl}/uploads/trainers/transformations/${photo}`
-      ),
-    };
-
-    res.status(200).json({
-      success: true,
-      data: response,
-    });
-  } catch (error) {
-    console.error("Error fetching trainer photos:", error);
-    res.status(500).json({
       success: false,
       message: "Internal server error",
     });

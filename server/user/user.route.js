@@ -3,11 +3,15 @@ const router = express.Router();
 const loginAccess = require("../../login.middleware");
 const userController = require("./user.controller");
 const trainerController = require("./trainer.controller");
+const otpController = require("./otp.controller");
 const userDetailsController = require("./user-details/user.details.controller");
 const refreshJWT = require("../config/refreshJWT");
 const verifyJWT = require("../../checkingAccess");
 const authenticateJWT = require("../../authenticateJWT");
 const enquiryRoutes = require("../enquiry/enquiry.route");
+
+// Debug log to check userController.userLogin
+console.log("userController.userLogin:", typeof userController.userLogin);
 
 //route to create a user
 router.post(
@@ -25,8 +29,12 @@ router.post(
 
 //route to create a trainer
 router.post("/trainer/register", trainerController.trainerRegistration); //trainer registration
-router.post("/trainer/verify-otp", trainerController.verifyOtp); //trainer otp verification
-router.put("/trainer/profile", verifyJWT, userController.updateTrainerProfile); //triner profile update
+router.post("/trainer/verify-otp", otpController.verifyOtp); //trainer otp verification
+router.put(
+  "/trainer/profile",
+  verifyJWT,
+  trainerController.updateTrainerProfile
+); //trainer profile update
 
 //route to create a user
 router.post("/refreshToken", loginAccess(), refreshJWT.refreshToken);
@@ -43,22 +51,17 @@ router.put("/users/:id", verifyJWT, userController.updateUser);
 router.get("/profile", verifyJWT, userController.getUserDetails);
 router.get("/getUserByEmail/:email", verifyJWT, userController.getUserByEmail);
 
-// Route to fetch a specific trainer by ID
 router.get("/trainers/:id", verifyJWT, userController.getTrainerById);
 router.get("/trainers", verifyJWT, userController.getAllTrainers);
-// Route to book trainer details by ID
-router.post("/book-trainer", authenticateJWT, userController.bookTrainer);
-//trainer photos
-router.get("/trainer/photos/:trainerId", userController.getTrainerPhotos);
 
-// Route to fetch all uaers fit data details by ID
+router.post("/book-trainer", authenticateJWT, userController.bookTrainer);
+
 router.get("/user-fit-data", verifyJWT, userController.getAllUserFitData);
-// Route to fetch fit data for a specific user, sorted by id DESC
 router.get(
   "/user-fit-data/:userId",
   verifyJWT,
   userController.getUserFitDataByUserId
-);
+); //get user fit data by user id
 
 router.put("/user-details", verifyJWT, userController.updateUserDetails);
 

@@ -1,3 +1,4 @@
+// models/CompetitionPrize.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
 
@@ -9,7 +10,13 @@ const CompetitionPrize = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    competition_id: {
+      // <-- Add this foreign key
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     competition_name: {
+      // Keep this if still needed for other logic, but for association, use competition_id
       type: DataTypes.STRING(255),
       allowNull: false,
     },

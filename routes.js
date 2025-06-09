@@ -61,9 +61,11 @@ router.use("/mutual-fund/site/apis", mutualRoute);
 const foodRoute = require("./server/food/food.route");
 router.use("/food/site/apis", foodRoute);
 
-// TODO: Add these routes once the corresponding route files are ready
 const userRoute = require("./server/user/user.route");
 router.use("/user/site/apis", userRoute);
+
+const bodyMeasurementsRoute = require("./server/ai_service/ai.service.route.js");
+router.use("/ai/service/site/apis", bodyMeasurementsRoute);
 
 const gymRoute = require("./server/gym/gym.route");
 router.use("/gym/site/apis", gymRoute);
@@ -88,8 +90,6 @@ router.use("/diet/site/apis", dietRoutes);
 // router.use("/gym/site/apis", gymRoutes);
 
 // membership routes
-// const membershipRoutes = require("./server/membership/membership.route");
-
 const membershipRoutes = require("./server/membership/membership.route");
 router.use("/membership/site/apis", membershipRoutes);
 
@@ -109,8 +109,6 @@ router.use("/easeBuzz/site/apis", easyBuzzRoutes);
 // Register ZEGOCLOUD channel routes under /channel
 const channelRouter = require("./server/zegocloud/channel/channel.route");
 router.use("/channel/site/apis", channelRouter);
-
-// Register ZEGOCLOUD chat routes under /chat
 const zegoRouter = require("./server/zegocloud/zegocloud.route");
 router.use("/chat/site/apis", zegoRouter);
 
@@ -118,6 +116,14 @@ const paymentRoute = require("./server/payments/payment.route");
 const allTransactionsRoute = require("./server/payments/allTransactions.route");
 router.use("/payments/site/apis", paymentRoute);
 router.use("/payments/site/apis", allTransactionsRoute);
+
+// Workout Routes
+const workoutRoutes = require("./server/workout/workout.route");
+router.use("/workout/site/apis", workoutRoutes);
+
+// Swasthfit Staff Routes
+const swasthfitStaffRoutes = require("./server/swasthfit_staff/swasthfitStaff.route");
+router.use("/swasthfit_staff/site/apis", swasthfitStaffRoutes);
 
 // Catch-all for Undefined Routes
 router.use((req, res) => {
