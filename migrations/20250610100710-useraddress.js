@@ -2,14 +2,14 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up (queryInterface, Sequelize) {
     /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+     * This migration creates the 'useraddress' table.
+     * It includes fields such as 'user_id', 'user_name', 'phone_number',
+     * 'address', 'house_no', 'city', 'latitude', 'longitude', and 'is_default'.
+     * A foreign key constraint is added for 'user_id' referencing the 'users' table.
      */
-    await queryInterface.createTable('UserAddress', {
+    await queryInterface.createTable('useraddress', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -18,7 +18,13 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'users', // Assumes your users table is named 'users'
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE', // Deletes addresses if the associated user is deleted
       },
       user_name: {
         type: Sequelize.STRING,
@@ -41,17 +47,16 @@ module.exports = {
         allowNull: true,
       },
       latitude: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        type: Sequelize.STRING, // Using STRING as per your model
+        allowNull: true,
       },
       longitude: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        type: Sequelize.STRING, // Using STRING as per your model
+        allowNull: true,
       },
       is_default: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: 1
+        defaultValue: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -66,13 +71,11 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down (queryInterface, Sequelize) {
     /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
+     * This 'down' migration will drop the 'useraddress' table,
+     * reverting the changes made by the 'up' migration.
      */
-    await queryInterface.dropTable('UserAddress');
+    await queryInterface.dropTable('useraddress');
   }
 };

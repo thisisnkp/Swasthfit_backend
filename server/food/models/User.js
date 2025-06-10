@@ -1,7 +1,7 @@
 // models/User.js
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../../sequelize");
-const FoodRestaurants = require("./Restaurant")
+const FoodRestaurants = require("./Restaurant");
 class User extends Model {}
 
 // Initialize the User model
@@ -14,14 +14,13 @@ User.init(
       primaryKey: true,
     },
     restaurant_id: {
-  type: DataTypes.INTEGER,
-  allowNull: true, // or false if required
-  references: {
-    model: 'foodrestaurants', // or the correct table name
-    key: 'id'
-  }
-}
-,
+      type: DataTypes.INTEGER,
+      allowNull: true, // or false if required
+      references: {
+        model: "foodrestaurants", // or the correct table name
+        key: "id",
+      },
+    },
     user_name: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -31,8 +30,7 @@ User.init(
         len: {
           args: [3, 30],
           msg: "Username must be between 3 and 30 characters long.",
-      
-  },
+        },
       },
     },
     password: {

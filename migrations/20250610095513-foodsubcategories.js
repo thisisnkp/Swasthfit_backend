@@ -2,7 +2,13 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up (queryInterface, Sequelize) {
+    /**
+     * This migration creates the 'foodsubcategories' table.
+     * It includes fields such as 'name', 'description', 'slug', 'img',
+     * 'category_id', 'commission', 'created_by', 'status', and timestamps.
+     * A foreign key constraint is added for 'category_id' referencing the 'foodcategories' table.
+     */
     await queryInterface.createTable('foodsubcategories', {
       id: {
         type: Sequelize.INTEGER,
@@ -30,10 +36,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'foodcategories', // Make sure this matches the actual table name for FoodCategory
+          model: 'foodcategories', // Ensure this matches your actual FoodCategory table name
           key: 'id',
         },
-        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE', // Deletes subcategories if the associated category is deleted
       },
       commission: {
         type: Sequelize.FLOAT,
@@ -56,12 +63,16 @@ module.exports = {
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
       },
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down (queryInterface, Sequelize) {
+    /**
+     * This 'down' migration will drop the 'foodsubcategories' table,
+     * reverting the changes made by the 'up' migration.
+     */
     await queryInterface.dropTable('foodsubcategories');
   }
 };

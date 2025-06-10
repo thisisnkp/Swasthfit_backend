@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../../sequelize");
-const FoodOrders = require("../food/models/foodOrder")
+const FoodOrders = require("../food/models/foodOrder");
 class User extends Model {}
 
 User.init(
@@ -29,11 +29,10 @@ User.init(
       allowNull: true,
       validate: { len: [12, 16] },
     },
-    password: { 
+    password: {
       type: DataTypes.STRING,
-      allowNull: false // <-- Is line ki wajah se password compulsory hai
-    }
-,    
+      allowNull: false, // <-- Is line ki wajah se password compulsory hai
+    },
     user_pan: {
       type: DataTypes.STRING(10),
       allowNull: true,
@@ -50,8 +49,24 @@ User.init(
     user_ratings: { type: DataTypes.STRING(255), allowNull: true },
     user_qr_code: { type: DataTypes.STRING(255), allowNull: true },
     is_signup: { type: DataTypes.BOOLEAN, defaultValue: true },
-    otpless_token: { type: DataTypes.STRING(100), unique: true, allowNull: true },
+    otpless_token: {
+      type: DataTypes.STRING(100),
+      unique: true,
+      allowNull: true,
+    },
     is_approved: { type: DataTypes.BOOLEAN, defaultValue: true },
+    restaurant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // or false if required
+      references: {
+        model: "foodrestaurants", // or the correct table name
+        key: "id",
+      },
+    },
+    vendor_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     sequelize,
@@ -60,10 +75,8 @@ User.init(
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
-  }
+  },
 );
-
-
 
 User.addHook("afterCreate", async (user, options) => {
   if (user.user_type === "owner") {

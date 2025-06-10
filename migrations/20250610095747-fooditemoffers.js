@@ -2,14 +2,14 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up (queryInterface, Sequelize) {
     /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+     * This migration creates the 'fooditemoffers' table.
+     * It includes fields such as 'id', 'item_id', 'min_quantity', 'offer_price',
+     * 'start_date', 'end_date', 'image', and timestamps (createdAt, updatedAt).
+     * A foreign key constraint is added for 'item_id' referencing the 'fooditems' table.
      */
-    await queryInterface.createTable('FoodItemOffers', {
+    await queryInterface.createTable('fooditemoffers', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -20,41 +20,31 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'FoodItems',
+          model: 'fooditems', // Ensure this matches your actual FoodItem table name
           key: 'id',
         },
-        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       min_quantity: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        comment: 'Minimum quantity required for the offer',
       },
       offer_price: {
         type: Sequelize.FLOAT,
         allowNull: false,
-        comment: 'Price for the specified quantity',
       },
       start_date: {
         type: Sequelize.DATE,
-        allowNull: true,
-        comment: 'Offer start date',
+        allowNull: false,
       },
       end_date: {
         type: Sequelize.DATE,
-        allowNull: true,
-        comment: 'Offer end date',
+        allowNull: false,
       },
-      created_by: {
-        type: Sequelize.INTEGER,
+      image: {
+        type: Sequelize.STRING,
         allowNull: true,
-        references: {
-          model: 'FoodRestaurants',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
       },
       created_at: {
         type: Sequelize.DATE,
@@ -69,13 +59,11 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down (queryInterface, Sequelize) {
     /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
+     * This 'down' migration will drop the 'fooditemoffers' table,
+     * reverting the changes made by the 'up' migration.
      */
-    await queryInterface.dropTable('FoodItemOffers');
+    await queryInterface.dropTable('fooditemoffers');
   }
 };

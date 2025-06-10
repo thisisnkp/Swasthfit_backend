@@ -2,18 +2,18 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up (queryInterface, Sequelize) {
     /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+     * This migration creates the 'foodcategories' table.
+     * It includes fields such as 'name', 'slug', 'description', 'img',
+     * 'created_by', 'parent_id', 'status', and timestamps.
      */
-    await queryInterface.createTable('FoodCategories', {
+    await queryInterface.createTable('foodcategories', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        allowNull: false,
       },
       name: {
         type: Sequelize.STRING,
@@ -29,31 +29,26 @@ module.exports = {
       },
       img: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       created_by: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: 'FoodRestaurants',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
       },
       parent_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: 'FoodCategories',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        // If you have a self-referencing foreign key for parent categories:
+        // references: {
+        //   model: 'foodcategories', // This table itself
+        //   key: 'id',
+        // },
+        // onUpdate: 'CASCADE',
+        // onDelete: 'SET NULL',
       },
       status: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true
+        defaultValue: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -68,13 +63,11 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down (queryInterface, Sequelize) {
     /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
+     * This 'down' migration will drop the 'foodcategories' table,
+     * reverting the changes made by the 'up' migration.
      */
-    await queryInterface.dropTable('FoodCategories');
+    await queryInterface.dropTable('foodcategories');
   }
 };
