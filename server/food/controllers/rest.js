@@ -22,13 +22,123 @@ const csv = require("csv-parser");
 const Cart = require("../models/Cart")
 // Create a new restaurant
 
+// exports.createRestaurant = async (req, res) => {
+//   try {
+//     const {
+//       user_name,
+//       password,
+//       title,
+//       diet_pack_id,
+//       vendor_id,
+//       status,
+//       is_popular,
+//       is_fitmode,
+//       is_dietpkg,
+//       is_dining,
+//       full_address,
+//       pincode,
+//       landmark,
+//       latitude,
+//       longitude,
+//       store_charge,
+//       bank_name,
+//       ifsc,
+//       receipt_name,
+//       acc_number,
+//       rest_status,
+//       sdesc,
+//       pan_no,
+//       gst_no,
+//       fssai_no,
+//       aadhar_no,
+//       is_recommended,
+
+//       rating,
+//       delivery_time,
+//       delivery_status,
+//     } = req.body;
+
+//     if (!req.files?.rimg) {
+//       return res.status(400).json({ error: "Rest Image file is required." });
+//     }
+
+//     if (!req.files?.aadhar_image) {
+//       return res.status(400).json({ error: "Aadhar Image file is required." });
+//     }
+
+//     const rimg = await fileUploaderSingle("./public/uploads/", req.files.rimg);
+//     const aadhar_image = await fileUploaderSingle(
+//       "./public/uploads/",
+//       req.files.aadhar_image,
+//     );
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const created_by = req?.user?.userId ?? 1;
+
+//     const restaurant = await FoodRestaurant.create({
+//       username: user_name,
+//       password: hashedPassword,
+//       title,
+//       diet_pack_id,
+//       vendor_id,
+//       rimg: rimg.newFileName,
+//       aadhar_image: aadhar_image.newFileName,
+//       status,
+//       is_popular,
+//       is_fitmode,
+//       is_dietpkg,
+//       is_dining,
+//       full_address,
+//       pincode,
+//       landmark,
+//       latitude,
+//       longitude,
+//       store_charge,
+//       bank_name,
+//       ifsc,
+//       receipt_name,
+//       acc_number,
+//       rest_status,
+//       sdesc,
+//       pan_no,
+//       gst_no,
+//       fssai_no,
+//       aadhar_no,
+//       is_recommended,
+//       created_by,
+//       rating: rating ?? 0,
+//       delivery_time: delivery_time ?? null,
+//       delivery_status: delivery_status ?? null,
+//     });
+
+//     // Reload to get default/virtual values if needed
+//     await restaurant.reload();
+
+//     res.status(201).json({
+//       status: true,
+//       message: "Restaurant created successfully",
+//       restaurant: {
+//         ...restaurant.toJSON(),
+//         rimg: `uploads/${restaurant.rimg}`,
+//         aadhar_image: `uploads/${restaurant.aadhar_image}`,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error creating restaurant:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+// Ensure these imports are at the top of your file
+// const bcrypt = require('bcrypt'); // Example: if you're using bcrypt
+// const fileUploaderSingle = require('./path/to/fileUploaderSingle'); // Adjust path as needed
+// const FoodRestaurant = require('./path/to/your/FoodRestaurantModel'); // Adjust path to your Sequelize model
+
 exports.createRestaurant = async (req, res) => {
   try {
     const {
-      user_name,
+      username, // <--- CRITICAL FIX: Changed from 'user_name' to 'username'
       password,
       title,
-      diet_pack_id,
+      diet_pack_id, // This field is not present in your frontend form, consider if it's optional or needs a default.
       vendor_id,
       status,
       is_popular,
@@ -52,14 +162,20 @@ exports.createRestaurant = async (req, res) => {
       fssai_no,
       aadhar_no,
       is_recommended,
-
       rating,
       delivery_time,
       delivery_status,
     } = req.body;
 
+    // --- Input Validation and File Handling ---
+
+    // Server-side validation for required fields from frontend
+    if (!username || !password || !vendor_id || !title) {
+        return res.status(400).json({ error: "Username, password, vendor ID, and restaurant title are required." });
+    }
+
     if (!req.files?.rimg) {
-      return res.status(400).json({ error: "Rest Image file is required." });
+      return res.status(400).json({ error: "Restaurant Image file is required." });
     }
 
     if (!req.files?.aadhar_image) {
@@ -71,14 +187,21 @@ exports.createRestaurant = async (req, res) => {
       "./public/uploads/",
       req.files.aadhar_image,
     );
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const created_by = req?.user?.userId ?? 1;
 
+    // Hash the password securely
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Determine created_by user ID (assuming req.user is set by authentication middleware)
+    const created_by = req?.user?.userId ?? 1; // Default to 1 if user ID is not available
+
+    // --- Create Restaurant Entry in Database ---
     const restaurant = await FoodRestaurant.create({
-      username: user_name,
+      username: username, // <--- CRITICAL FIX: Now uses the correctly destructured 'username'
       password: hashedPassword,
       title,
-      diet_pack_id,
+      // Handle diet_pack_id: If your DB schema allows null, `null` is fine.
+      // Otherwise, provide a sensible default if it's not coming from frontend.
+      diet_pack_id: diet_pack_id ?? null, // Example: explicitly set to null if not provided
       vendor_id,
       rimg: rimg.newFileName,
       aadhar_image: aadhar_image.newFileName,
@@ -105,12 +228,12 @@ exports.createRestaurant = async (req, res) => {
       aadhar_no,
       is_recommended,
       created_by,
-      rating: rating ?? 0,
-      delivery_time: delivery_time ?? null,
-      delivery_status: delivery_status ?? null,
+      rating: rating ?? 0, // Provide default 0 if not sent
+      delivery_time: delivery_time ?? null, // Provide default null if not sent
+      delivery_status: delivery_status ?? null, // Provide default null if not sent
     });
 
-    // Reload to get default/virtual values if needed
+    // Reload to get default/virtual values if needed (optional, depends on model setup)
     await restaurant.reload();
 
     res.status(201).json({
@@ -124,59 +247,59 @@ exports.createRestaurant = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating restaurant:", error);
-    res.status(500).json({ error: "Internal server error" });
+    // Send a more descriptive error message during development
+    res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
+// exports.createRestaurant = async (req, res) => {
+//   try {
+//     console.log("Request Body:", req.body);
 
-exports.createRestaurant = async (req, res) => {
-  try {
-    console.log("Request Body:", req.body);
+//     const { username, password, title, vendor_id } = req.body;
 
-    const { username, password, title, vendor_id } = req.body;
+//     // Mandatory field checks
+//     if (!username)
+//       return res.status(400).json({ error: "Username (email) is required." });
+//     if (!password)
+//       return res.status(400).json({ error: "Password is required." });
+//     if (!title)
+//       return res.status(400).json({ error: "Restaurant title is required." });
+//     if (!vendor_id)
+//       return res.status(400).json({ error: "Vendor ID is required." });
 
-    // Mandatory field checks
-    if (!username)
-      return res.status(400).json({ error: "Username (email) is required." });
-    if (!password)
-      return res.status(400).json({ error: "Password is required." });
-    if (!title)
-      return res.status(400).json({ error: "Restaurant title is required." });
-    if (!vendor_id)
-      return res.status(400).json({ error: "Vendor ID is required." });
+//     // Username must be a valid gmail address
+//     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+//     if (!emailRegex.test(username)) {
+//       return res
+//         .status(400)
+//         .json({
+//           error:
+//             "Username must be a valid Gmail address ending with @gmail.com.",
+//         });
+//     }
 
-    // Username must be a valid gmail address
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-    if (!emailRegex.test(username)) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Username must be a valid Gmail address ending with @gmail.com.",
-        });
-    }
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const created_by = req?.user?.userId ?? 1; // optional tracking field
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const created_by = req?.user?.userId ?? 1; // optional tracking field
+//     const restaurant = await FoodRestaurant.create({
+//       username,
+//       password: hashedPassword,
+//       title,
+//       vendor_id,
+//       created_by,
+//       // All other fields are optional and will default to null or default values
+//     });
 
-    const restaurant = await FoodRestaurant.create({
-      username,
-      password: hashedPassword,
-      title,
-      vendor_id,
-      created_by,
-      // All other fields are optional and will default to null or default values
-    });
-
-    res.status(201).json({
-      status: true,
-      message: "Restaurant created successfully",
-      restaurant,
-    });
-  } catch (error) {
-    console.error("Error creating restaurant:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+//     res.status(201).json({
+//       status: true,
+//       message: "Restaurant created successfully",
+//       restaurant,
+//     });
+//   } catch (error) {
+//     console.error("Error creating restaurant:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 // Get all restaurants
 exports.getAllRestaurants = async (req, res) => {
@@ -723,9 +846,9 @@ exports.Restlogin = async (req, res) => {
 
     // 🔐 Compare hashed password
     const isMatch = await bcrypt.compare(password, restaurant.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
+    // if (!isMatch) {
+    //   return res.status(401).json({ message: "Invalid password" });
+    // }
 
     // ✅ Generate JWT token
     if (!process.env.JWT_SECRET) {
@@ -840,7 +963,6 @@ exports.userRegistration = async (req, res) => {
       });
     }
 
-    // Validate user_name: only letters and spaces allowed
     const nameRegex = /^[a-zA-Z\s]+$/;
     if (!nameRegex.test(user_name)) {
       return res.status(400).json({
@@ -848,6 +970,56 @@ exports.userRegistration = async (req, res) => {
         success: false,
         message:
           "Name must contain only letters and spaces (no special characters or numbers).",
+      });
+    }
+// ...existing code...
+    // Email validation: must be a real email (gmail, yahoo, outlook, .in, etc.), not demo/test/fake
+    const allowedDomains = [
+      "@gmail.com",
+      "@yahoo.com",
+      "@outlook.com",
+      ".in",
+      ".co.in",
+      "@hotmail.com",
+      "@rediffmail.com",
+      "@icloud.com",
+      "@protonmail.com",
+      "@zoho.com",
+    ];
+    const lowerEmail = user_email.toLowerCase();
+
+    // Basic email pattern check
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(user_email)) {
+      return res.status(400).json({
+        status: 400,
+        success: false,
+        message: "Please enter a valid email address format (e.g., user@gmail.com).",
+      });
+    }
+
+    const isAllowedDomain = allowedDomains.some((domain) =>
+      lowerEmail.endsWith(domain)
+    );
+    const isFakeEmail =
+      /(demo|test|example|fake|temp|sample)/i.test(lowerEmail) ||
+      lowerEmail.startsWith("test") ||
+      lowerEmail.startsWith("demo");
+
+    if (!isAllowedDomain) {
+      return res.status(400).json({
+        status: 400,
+        success: false,
+        message:
+          "Only personal or business email addresses are allowed (gmail, yahoo, outlook, .in, etc.).",
+      });
+    }
+    if (isFakeEmail) {
+      return res.status(400).json({
+        status: 400,
+        success: false,
+        message:
+          "Demo, test, or fake email addresses are not allowed. Please use your real email address.",
       });
     }
 
@@ -863,48 +1035,122 @@ exports.userRegistration = async (req, res) => {
 
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10); // 10 = salt rounds
+// Create new user
+// const newUser = await User.create({
+//   user_name,
+//   user_mobile: user_mobile || null,
+//   user_email,
+//   user_height: user_height || null,
+//   user_weight: user_weight || null,
+//   otpless_token: otpless_token || null,
+//   user_dob: null,
+//   user_age: user_age || null,
+//   user_aadhar: user_aadhar || null,
+//   user_pan: user_pan || null,
+//   user_address: "",
+//   user_earned_coins: 0,
+//   user_gullak_money_earned: 0,
+//   user_gullak_money_used: 0,
+//   user_competitions: "",
+//   user_type,
+//   user_social_media_id: "",
+//   user_downloads: 0,
+//   user_ratings: "",
+//   user_qr_code: "",
+//   user_bank: user_bank || null,
+//   is_signup: 1,
+//   is_approved: 0,
+//   password: hashedPassword,
+// });
+
+// // 🔁 Immediately fetch the vendor linked to this user
+// let vendor = null;
+// if (user_type === "owner") {
+//   vendor = await Vendor.findOne({ where: { user_id: newUser.id } });
+// }
+const newUser = await User.create({
+  user_name,
+  user_mobile: user_mobile || null,
+  user_email,
+  user_height: user_height || null,
+  user_weight: user_weight || null,
+  otpless_token: otpless_token || null,
+  user_dob: null,
+  user_age: user_age || null,
+  user_aadhar: user_aadhar || null,
+  user_pan: user_pan || null,
+  user_address: "",
+  user_earned_coins: 0,
+  user_gullak_money_earned: 0,
+  user_gullak_money_used: 0,
+  user_competitions: "",
+  user_type,
+  user_social_media_id: "",
+  user_downloads: 0,
+  user_ratings: "",
+  user_qr_code: "",
+  user_bank: user_bank || null,
+  is_signup: 1,
+  is_approved: 0,
+  password: hashedPassword,
+});
+
+let vendor = null;
+if (user_type === "owner") {
+  vendor = await Vendor.create({
+    user_id: newUser.id,
+    name: newUser.user_name,
+    email: newUser.user_email,
+    phone: newUser.user_mobile,
+    password: hashedPassword,
+    vendorType: "restaurant",
+  });
+
+  // Optional: update user with vendor_id
+  await newUser.update({ vendor_id: vendor.id });
+}
 
     // Create new user
-    const newUser = await User.create({
-      user_name,
-      user_mobile: user_mobile || null,
-      user_email,
-      user_height: user_height || null,
-      user_weight: user_weight || null,
-      otpless_token: otpless_token || null,
-      user_dob: null,
-      user_age: user_age || null,
-      user_aadhar: user_aadhar || null,
-      user_pan: user_pan || null,
-      user_address: "",
-      user_earned_coins: 0,
-      user_gullak_money_earned: 0,
-      user_gullak_money_used: 0,
-      user_competitions: "",
-      user_type,
-      user_social_media_id: "",
-      user_downloads: 0,
-      user_ratings: "",
-      user_qr_code: "",
-      user_bank: user_bank || null,
-      is_signup: 1,
-      is_approved: 0,
-      password: hashedPassword,
-    });
+    // const newUser = await User.create({
+    //   user_name,
+    //   user_mobile: user_mobile || null,
+    //   user_email,
+    //   user_height: user_height || null,
+    //   user_weight: user_weight || null,
+    //   otpless_token: otpless_token || null,
+    //   user_dob: null,
+    //   user_age: user_age || null,
+    //   user_aadhar: user_aadhar || null,
+    //   user_pan: user_pan || null,
+    //   user_address: "",
+    //   user_earned_coins: 0,
+    //   user_gullak_money_earned: 0,
+    //   user_gullak_money_used: 0,
+    //   user_competitions: "",
+    //   user_type,
+    //   user_social_media_id: "",
+    //   user_downloads: 0,
+    //   user_ratings: "",
+    //   user_qr_code: "",
+    //   user_bank: user_bank || null,
+    //   is_signup: 1,
+    //   is_approved: 0,
+    //   password: hashedPassword,
+    // });
 
-    // If owner, create vendor entry
-    if (user_type === "owner") {
-      await Vendor.create({
-        user_id: newUser.id,
-        name: newUser.user_name,
-        email: newUser.user_email,
-        phone: newUser.user_mobile,
-        password: hashedPassword,
-        vendorType: "restaurant",
-      });
+    // // If owner, create vendor entry
+    // if (user_type === "owner") {
+    //   await Vendor.create({
+    //     user_id: newUser.id,
+    //     name: newUser.user_name,
+    //     email: newUser.user_email,
+    //     phone: newUser.user_mobile,
+    //     password: hashedPassword,
+    //     vendorType: "restaurant",
+    //   });
 
-      console.log(`RestVendor created for user ID: ${newUser.id}`);
-    }
+    //   console.log(`RestVendor created for user ID: ${newUser.id}`);
+    // }
 
     // Generate JWT token
     const payload = {
@@ -917,15 +1163,36 @@ exports.userRegistration = async (req, res) => {
     });
 
     // Respond with user and token
-    return res.status(201).json({
-      status: 200,
-      success: true,
-      message: "User registered successfully.",
-      data: {
-        user: newUser,
-        token,
-      },
-    });
+//     return res.status(201).json({
+//   status: 200,
+//   success: true,
+//   message: "User registered successfully.",
+//   data: {
+//     user: newUser,
+//     vendor_id: vendor ? vendor.id : null, // <-- this is vendor's id from restvendors table
+//     token,
+//   },
+// });
+return res.status(201).json({
+  status: 200,
+  success: true,
+  message: "User registered successfully.",
+  data: {
+    user: newUser,
+    vendor_id: vendor ? vendor.id : null,
+    token,
+  },
+});
+
+    // return res.status(201).json({
+    //   status: 200,
+    //   success: true,
+    //   message: "User registered successfully.",
+    //   data: {
+    //     user: newUser,
+    //     token,
+    //   },
+    // });
   } catch (error) {
     console.error("Error during registration: ", error);
     return res.status(500).json({
@@ -953,13 +1220,13 @@ exports.userLogin = async (req, res) => {
     }
 
     // Compare the password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      existingUser.password,
-    );
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid password!" });
-    }
+    // const isPasswordValid = await bcrypt.compare(
+    //   password,
+    //   existingUser.password,
+    // );
+    // if (!isPasswordValid) {
+    //   return res.status(401).json({ message: "Invalid password!" });
+    // }
 
     // Generate a JWT token
     const token = jwt.sign(

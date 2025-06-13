@@ -226,3 +226,49 @@ exports.getUserDetails = async (req, res) => {
 };
 
 
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Optional: Basic pagination and filtering
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const whereClause = {};
+
+    // Optional filtering by user_type or email, etc.
+    if (req.query.user_type) {
+      whereClause.user_type = req.query.user_type;
+    }
+    if (req.query.search) {
+      whereClause[Op.or] = [
+        { user_name: { [Op.like]: `%${req.query.search}%` } },
+        { user_email: { [Op.like]: `%${req.query.search}%` } },
+        { user_mobile: { [Op.like]: `%${req.query.search}%` } },
+      ];
+    }
+
+    const users = await User.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
+      order: [["created_at", "DESC"]],
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: users.rows,
+      total: users.count,
+      currentPage: page,
+      totalPages: Math.ceil(users.count / limit),
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+};

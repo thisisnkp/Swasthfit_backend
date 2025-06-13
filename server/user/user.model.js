@@ -79,21 +79,21 @@ User.init(
 );
 
 User.addHook("afterCreate", async (user, options) => {
-  if (user.user_type === "owner") {
-    try {
-      await Vendor.create({
-        user_id: user.id, // linking vendor to user
-        name: user.user_name,
-        email: user.user_email,
-        phone: user.user_mobile,
-        password: user.password, // ya aap alag password bhi set kar sakte ho
-        vendorType: "restaurant", // ya default jo bhi aapka logic ho
-      });
-      console.log(`Vendor created for user ID: ${user.id}`);
-    } catch (error) {
-      console.error("Error creating Vendor:", error);
-    }
-  }
+  // if (user.user_type === "owner") {
+  //   try {
+  //     await Vendor.create({
+  //       user_id: user.id, // linking vendor to user
+  //       name: user.user_name,
+  //       email: user.user_email,
+  //       phone: user.user_mobile,
+  //       password: user.password, // ya aap alag password bhi set kar sakte ho
+  //       vendorType: "restaurant", // ya default jo bhi aapka logic ho
+  //     });
+  //     console.log(`Vendor created for user ID: ${user.id}`);
+  //   } catch (error) {
+  //     console.error("Error creating Vendor:", error);
+  //   }
+  // }
 });
 
 // Hooks
