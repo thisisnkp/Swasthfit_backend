@@ -123,13 +123,13 @@ app.post("/refund", (req, res) => refund.refund(req.body, config, res));
 
 app.use("/", Routes);
 
-// app.listen(port, "0.0.0.0", () => {
-//   console.log(`🚀 Server running at: http://"0.0.0.0":${port}`);
-// });
-
-app.listen(port, "10.0.0.82", () => {
-  console.log(`🚀 Server running at: http://10.0.0.82:${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 Server running at: http://"0.0.0.0":${port}`);
 });
+
+// app.listen(port, "10.0.0.82", () => {
+//   console.log(`🚀 Server running at: http://10.0.0.82:${port}`);
+// });
 
 // const express = require("express");
 // const cors = require("cors");

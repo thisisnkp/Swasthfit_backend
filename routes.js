@@ -125,8 +125,13 @@ router.use("/workout/site/apis", workoutRoutes);
 const swasthfitStaffRoutes = require("./server/swasthfit_staff/swasthfitStaff.route");
 router.use("/swasthfit_staff/site/apis", swasthfitStaffRoutes);
 
+// Blood Report Routes
+const bloodReportRoutes = require("./server/medical/blood_test/bloodReport.route");
+router.use("/medical/site/api", bloodReportRoutes);
+
 // Catch-all for Undefined Routes
 router.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
+
 module.exports = router;

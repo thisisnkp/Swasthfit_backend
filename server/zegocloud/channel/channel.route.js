@@ -9,10 +9,17 @@ router.get(
   channelController.getTrainerAvailability
 );
 router.get("/meetings", channelController.listScheduledMeetings);
+
 router.post(
   "/meetings/schedule",
   authenticateJWT,
   channelController.scheduleMeeting
+);
+
+router.post(
+  "/meetings/schedule-by-trainer",
+  authenticateJWT,
+  channelController.scheduleMeetingByTrainer
 );
 
 // New routes for transcription

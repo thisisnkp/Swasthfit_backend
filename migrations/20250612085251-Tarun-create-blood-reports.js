@@ -2,48 +2,31 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("current_user_subscription", {
+    await queryInterface.createTable("blood_reports", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        allowNull: false,
       },
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        // Add foreign key constraint if needed
+        // references: { model: 'users', key: 'id' }
       },
-      plans: {
+      data: {
         type: Sequelize.JSON,
         allowNull: false,
       },
-      amount: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      payment_status: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-      },
-      payment_method: {
-        type: Sequelize.STRING(100),
-        allowNull: true,
-      },
-      starting_date: {
-        type: Sequelize.DATEONLY,
-        allowNull: false,
-      },
-      ending_date: {
-        type: Sequelize.DATEONLY,
-        allowNull: false,
-      },
       created_at: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updated_at: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal(
           "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
         ),
@@ -52,6 +35,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("current_user_subscription");
+    await queryInterface.dropTable("blood_reports");
   },
 };

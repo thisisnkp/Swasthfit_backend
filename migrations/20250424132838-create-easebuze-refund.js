@@ -1,22 +1,22 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('easebuzz_refunds', {
+    await queryInterface.createTable("easebuzz_refunds", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
       txnid: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(19),
         allowNull: false,
         references: {
-          model: 'easebuzz_transactions', // Referencing the correct table name for transactions
-          key: 'txnid',
+          model: "easebuzz_payment", // Corrected table name for transactions
+          key: "txnid",
         },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       refund_txnid: {
         type: Sequelize.STRING,
@@ -32,8 +32,8 @@ module.exports = {
         allowNull: true,
       },
       refund_status: {
-        type: Sequelize.ENUM('pending', 'processed', 'failed'),
-        defaultValue: 'pending',
+        type: Sequelize.ENUM("pending", "processed", "failed"),
+        defaultValue: "pending",
       },
       created_at: {
         type: Sequelize.DATE,
@@ -47,6 +47,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('easebuzz_refunds');
-  }
+    await queryInterface.dropTable("easebuzz_refunds");
+  },
 };

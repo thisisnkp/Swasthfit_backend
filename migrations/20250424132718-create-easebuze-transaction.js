@@ -15,12 +15,6 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "users", // Ensure this references the correct table name
-          key: "id",
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
       },
       amount: {
         type: Sequelize.FLOAT,

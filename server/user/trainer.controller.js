@@ -84,8 +84,8 @@ exports.trainerRegistration = async (req, res) => {
       wallet_id: generateWalletId(),
     });
 
-    // Generate 6-digit OTP
-    const otp_code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 4-digit OTP
+    const otp_code = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Set OTP expiration time (5 minutes from now)
     const expires_at = new Date(Date.now() + 5 * 60 * 1000);

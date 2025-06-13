@@ -3,13 +3,63 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Create 'trainer_hiring_data' table
-    await queryInterface.createTable("trainer_hiring_data", {
+    await queryInterface.createTable("trainer_availability", {
       id: {
-        type: Sequelize.INTEGER,
+        allowNull: false,
         autoIncrement: true,
         primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
+      trainer_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: "trainers",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      day_of_week: {
+        type: Sequelize.ENUM(
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ),
+        allowNull: false,
+      },
+      start_time: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      end_time: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        allowNull: false,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal(
+          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        ),
+        allowNull: false,
+      },
+    });
+
+    await queryInterface.createTable("scheduled_meetings", {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
       },
       trainer_id: {
         type: Sequelize.INTEGER,
@@ -31,72 +81,41 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      starting_date: {
+      meeting_date: {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-      ending_date: {
-        type: Sequelize.DATEONLY,
+      start_time: {
+        type: Sequelize.TIME,
         allowNull: false,
       },
-      total_amount: {
-        type: Sequelize.DECIMAL(10, 2),
+      end_time: {
+        type: Sequelize.TIME,
         allowNull: false,
       },
-      created_at: {
-        allowNull: false,
+      status: {
+        type: Sequelize.ENUM("scheduled", "cancelled", "completed"),
+        defaultValue: "scheduled",
+      },
+      createdAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-      },
-      updated_at: {
         allowNull: false,
+      },
+      updatedAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal(
           "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
         ),
-      },
-    });
-
-    // Create 'trainers_all_payments' table
-    await queryInterface.createTable("trainers_all_payments", {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
         allowNull: false,
-      },
-      trainer_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: "trainers",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      },
-      vendor_wallet_transaction_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      created_at: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
-      },
-      updated_at: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.literal(
-          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-        ),
       },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    // Drop tables in reverse order of creation
-    await queryInterface.dropTable("trainers_all_payments");
-    await queryInterface.dropTable("trainer_hiring_data");
+    // Drop tables in reverse order of creation due to foreign key dependencies
+    await queryInterface.dropTable("scheduled_meetings");
+    await queryInterface.dropTable("trainer_availability");
+    await queryInterface.dropTable("days");
   },
 };
